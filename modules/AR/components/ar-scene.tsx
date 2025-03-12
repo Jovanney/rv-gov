@@ -3,20 +3,15 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import Link from "next/link";
+import * as THREE from "three";
+import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 
-// 📍 Lista de obras com coordenadas fictícias
-const OBRAS = [
-  { id: 1, nome: "Obra A", latitude: -8.0476, longitude: -34.877 },
-  { id: 2, nome: "Obra B", latitude: -8.05, longitude: -34.88 },
-  { id: 3, nome: "Obra C", latitude: -8.045, longitude: -34.875 },
-  {
-    id: 4,
-    nome: "Obra D",
-    latitude: -8.046067081209857,
-    longitude: -34.8,
-  },
-];
+// 📍 Coordenadas da obra (Cidade Universitária, Recife - PE)
+const OBRAS_COORDENADAS = {
+  latitude: -8.0476,
+  longitude: -34.877,
+  raioMetros: 50, // Raio de proximidade para ativar a AR
+};
 
 // 📌 Função para calcular a distância entre duas coordenadas (Haversine)
 const calcularDistancia = (
@@ -41,17 +36,11 @@ const calcularDistancia = (
 };
 
 export function ARScene() {
+  const [pertoDaObra, setPertoDaObra] = useState(false);
   const [coordenadasUsuario, setCoordenadasUsuario] = useState<{
     latitude: number | null;
     longitude: number | null;
   }>({ latitude: null, longitude: null });
-
-  const [obraProxima, setObraProxima] = useState<{
-    id: number;
-    nome: string;
-    latitude: number;
-    longitude: number;
-  } | null>(null);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -60,18 +49,20 @@ export function ARScene() {
           const { latitude, longitude } = pos.coords;
           setCoordenadasUsuario({ latitude, longitude });
 
-          // Verifica se o usuário está próximo de alguma obra
-          const obraEncontrada = OBRAS.find((obra) => {
-            const distancia = calcularDistancia(
-              latitude,
-              longitude,
-              obra.latitude,
-              obra.longitude
-            );
-            return distancia <= 50; // Raio de 50 metros
-          });
+          const distancia = calcularDistancia(
+            latitude,
+            longitude,
+            OBRAS_COORDENADAS.latitude,
+            OBRAS_COORDENADAS.longitude
+          );
 
-          setObraProxima(obraEncontrada || null);
+          console.log(
+            `📍 Usuário está a ${distancia.toFixed(2)}m da obra (Limite: ${
+              OBRAS_COORDENADAS.raioMetros
+            }m)`
+          );
+
+          setPertoDaObra(distancia <= OBRAS_COORDENADAS.raioMetros);
         },
         (err) => console.error("Erro ao obter localização:", err),
         { enableHighAccuracy: true }
@@ -83,24 +74,87 @@ export function ARScene() {
     }
   }, []);
 
+  // Função para inicializar a cena de RA
+  const iniciarAR = () => {
+    // Configuração básica da cena, câmera e renderizador
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      70,
+      window.innerWidth / window.innerHeight,
+      0.01,
+      20
+    );
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // Adiciona uma luz hemisférica à cena
+    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+    light.position.set(0.5, 1, 0.25);
+    scene.add(light);
+
+    // Criando a placa como um plano 3D
+    const geometry = new THREE.PlaneGeometry(2, 1);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+    });
+    const placa = new THREE.Mesh(geometry, material);
+    placa.position.set(0, 1, -3);
+    scene.add(placa);
+
+    // Adicionando um texto básico (mockado)
+    const textCanvas = document.createElement("canvas");
+    const ctx = textCanvas.getContext("2d")!;
+    textCanvas.width = 512;
+    textCanvas.height = 256;
+    ctx.fillStyle = "blue";
+    ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "Bold 32px Arial";
+    ctx.fillText("OBRA DO GOVERNO", 50, 60);
+    ctx.font = "24px Arial";
+    ctx.fillText("Construção da via expressa", 50, 120);
+    ctx.fillText("Prazo: 12 meses", 50, 160);
+    ctx.fillText("Investimento: R$ 5 milhões", 50, 200);
+
+    const textTexture = new THREE.CanvasTexture(textCanvas);
+    material.map = textTexture;
+    material.needsUpdate = true;
+
+    // Botão AR
+    document.body.appendChild(
+      ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
+    );
+
+    // Renderização
+    const animate = () => {
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+      });
+    };
+    animate();
+  };
+
   return (
     <div>
-      <h2>Mapa das Obras e sua Posição</h2>
+      <h2>Mapa da Obra e sua Posição</h2>
 
-      {/* 🌍 Mapa para mostrar a posição do usuário e das obras */}
+      {/* 🌍 Mapa para mostrar a posição do usuário e da obra */}
       <MapContainer
-        center={[-8.0476, -34.877]}
+        center={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
         zoom={15}
-        style={{ height: "90vh", width: "100%", borderRadius: "10px" }}
+        style={{ height: "100vh", width: "100%", borderRadius: "10px" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 📌 Marcadores das Obras */}
-        {OBRAS.map((obra) => (
-          <Marker key={obra.id} position={[obra.latitude, obra.longitude]}>
-            <Popup>{`🏗️ ${obra.nome}`}</Popup>
-          </Marker>
-        ))}
+        {/* 📌 Marcador da Obra */}
+        <Marker
+          position={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
+        >
+          <Popup>🏗️ Obra do Governo</Popup>
+        </Marker>
 
         {/* 📍 Marcador do Usuário (se as coordenadas estiverem disponíveis) */}
         {coordenadasUsuario.latitude && coordenadasUsuario.longitude && (
@@ -115,19 +169,30 @@ export function ARScene() {
         )}
       </MapContainer>
 
-      {/* 📝 Informações sobre a proximidade das obras */}
-      {obraProxima ? (
-        <div>
-          <p>
-            🎉 Você está dentro do perímetro da {obraProxima.nome}! A placa pode
-            ser exibida em RA.
-          </p>
-          <Link href={`/ar/${obraProxima.id}`}>
-            <button>🔍 Ver em Realidade Aumentada</button>
-          </Link>
-        </div>
-      ) : (
-        <p>❌ Você está fora do perímetro das obras.</p>
+      {/* 📝 Informações sobre a proximidade da obra */}
+      <p>
+        {pertoDaObra
+          ? "🎉 Você está dentro do perímetro da obra! A placa será exibida em AR."
+          : "❌ Você ainda está fora do perímetro."}
+      </p>
+
+      {/* Botão para abrir a RA quando dentro do perímetro */}
+      {pertoDaObra && (
+        <button
+          onClick={iniciarAR}
+          style={{
+            padding: "10px 20px",
+            fontSize: "16px",
+            backgroundColor: "blue",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            marginTop: "10px",
+          }}
+        >
+          🔍 Ver Placa em Realidade Aumentada
+        </button>
       )}
     </div>
   );
