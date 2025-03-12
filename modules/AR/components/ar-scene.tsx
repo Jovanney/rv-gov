@@ -4,12 +4,18 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-// 📍 Coordenadas da obra (Cidade Universitária, Recife - PE)
-const OBRAS_COORDENADAS = {
-  latitude: -8.0476,
-  longitude: -34.877,
-  raioMetros: 50, // Raio de proximidade para ativar a AR
-};
+// 📍 Lista de obras com coordenadas fictícias
+const OBRAS = [
+  { id: 1, nome: "Obra A", latitude: -8.0476, longitude: -34.877 },
+  { id: 2, nome: "Obra B", latitude: -8.05, longitude: -34.88 },
+  { id: 3, nome: "Obra C", latitude: -8.045, longitude: -34.875 },
+  {
+    id: 4,
+    nome: "Obra D",
+    latitude: -8.046067081209857,
+    longitude: -34.8,
+  },
+];
 
 // 📌 Função para calcular a distância entre duas coordenadas (Haversine)
 const calcularDistancia = (
@@ -34,7 +40,6 @@ const calcularDistancia = (
 };
 
 export function ARScene() {
-  const [pertoDaObra, setPertoDaObra] = useState(false);
   const [coordenadasUsuario, setCoordenadasUsuario] = useState<{
     latitude: number | null;
     longitude: number | null;
@@ -46,21 +51,6 @@ export function ARScene() {
         (pos) => {
           const { latitude, longitude } = pos.coords;
           setCoordenadasUsuario({ latitude, longitude });
-
-          const distancia = calcularDistancia(
-            latitude,
-            longitude,
-            OBRAS_COORDENADAS.latitude,
-            OBRAS_COORDENADAS.longitude
-          );
-
-          console.log(
-            `📍 Usuário está a ${distancia.toFixed(2)}m da obra (Limite: ${
-              OBRAS_COORDENADAS.raioMetros
-            }m)`
-          );
-
-          setPertoDaObra(distancia <= OBRAS_COORDENADAS.raioMetros);
         },
         (err) => console.error("Erro ao obter localização:", err),
         { enableHighAccuracy: true }
@@ -74,22 +64,25 @@ export function ARScene() {
 
   return (
     <div>
-      <h2>Mapa da Obra e sua Posição</h2>
+      <h2>Mapa das Obras e sua Posição</h2>
 
-      {/* 🌍 Mapa para mostrar a posição do usuário e da obra */}
+      {/* 🌍 Mapa para mostrar a posição do usuário e das obras */}
       <MapContainer
-        center={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
+        center={[
+          coordenadasUsuario?.latitude || -8.0476,
+          coordenadasUsuario?.longitude || -34.877,
+        ]}
         zoom={15}
         style={{ height: "100vh", width: "100%", borderRadius: "10px" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 📌 Marcador da Obra */}
-        <Marker
-          position={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
-        >
-          <Popup>🏗️ Obra do Governo</Popup>
-        </Marker>
+        {/* 📌 Marcadores das Obras */}
+        {OBRAS.map((obra) => (
+          <Marker key={obra.id} position={[obra.latitude, obra.longitude]}>
+            <Popup>{`🏗️ ${obra.nome}`}</Popup>
+          </Marker>
+        ))}
 
         {/* 📍 Marcador do Usuário (se as coordenadas estiverem disponíveis) */}
         {coordenadasUsuario.latitude && coordenadasUsuario.longitude && (
@@ -104,12 +97,36 @@ export function ARScene() {
         )}
       </MapContainer>
 
-      {/* 📝 Informações sobre a proximidade da obra */}
-      <p>
-        {pertoDaObra
-          ? "🎉 Você está dentro do perímetro da obra! A placa será exibida em AR."
-          : "❌ Você ainda está fora do perímetro."}
-      </p>
+      {/* 📝 Informações sobre a proximidade das obras */}
+      <ul>
+        {OBRAS.map((obra) => {
+          if (coordenadasUsuario.latitude && coordenadasUsuario.longitude) {
+            const distancia = calcularDistancia(
+              coordenadasUsuario.latitude,
+              coordenadasUsuario.longitude,
+              obra.latitude,
+              obra.longitude
+            );
+
+            const dentroDoPerimetro = distancia <= 50; // Raio de 50 metros
+
+            return (
+              <li key={obra.id}>
+                {dentroDoPerimetro
+                  ? `🎉 Você está dentro do perímetro da ${obra.nome}! A placa será exibida em AR.`
+                  : `❌ Você está fora do perímetro da ${obra.nome}.`}
+              </li>
+            );
+          } else {
+            return (
+              <li key={obra.id}>
+                `⚠️ Não foi possível determinar sua posição em relação à $
+                {obra.nome}.`
+              </li>
+            );
+          }
+        })}
+      </ul>
     </div>
   );
 }
