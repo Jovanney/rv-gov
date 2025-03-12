@@ -1,0 +1,22 @@
+create table obras (
+  idUnico text PRIMARY KEY,
+  nome text,
+  uf text,
+  endereco text,
+  descricao text,
+  funcaoSocial text,
+  metaGlobal text,
+  dataInicialPrevista text,
+  dataInicialEfetiva text,
+  dataFinalPrevista text,
+  dataFinalEfetiva text,
+  especie text,
+  natureza text,
+  situacao text,
+  dataSituacao text,
+  geometria text,
+  cep text,
+  enderecoAreaExecutora text,
+  recursosOrigem text,
+  recursosValorInvestimento DECIMAL(15,2)
+);
