@@ -1,11 +1,64 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as THREE from "three";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 
+// Coordenadas Mockadas da Obra
+const OBRAS_COORDENADAS = {
+  latitude: -8.0476, // Latitude fictícia
+  longitude: -34.877, // Longitude fictícia
+  raioMetros: 50, // Distância limite para ativar a AR
+};
+
+// Função para calcular a distância entre duas coordenadas (Haversine)
+const calcularDistancia = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) => {
+  const R = 6371e3; // Raio da Terra em metros
+  const rad = (deg: number) => (deg * Math.PI) / 180;
+  const φ1 = rad(lat1);
+  const φ2 = rad(lat2);
+  const Δφ = rad(lat2 - lat1);
+  const Δλ = rad(lon2 - lon1);
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
+
 export function ARScene() {
+  const [pertoDaObra, setPertoDaObra] = useState(false);
+
   useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const distancia = calcularDistancia(
+            latitude,
+            longitude,
+            OBRAS_COORDENADAS.latitude,
+            OBRAS_COORDENADAS.longitude
+          );
+          setPertoDaObra(distancia <= OBRAS_COORDENADAS.raioMetros);
+        },
+        (err) => console.error(err),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!pertoDaObra) return;
+
+    // Configuração Three.js
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       70,
@@ -18,94 +71,52 @@ export function ARScene() {
     renderer.xr.enabled = true;
     document.body.appendChild(renderer.domElement);
 
+    // Adiciona luz
     const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-    light.position.set(0.5, 1, 0.25);
     scene.add(light);
-    const reticleGeometry = new THREE.RingGeometry(0.15, 0.2, 32).rotateX(
-      -Math.PI / 2
-    );
-    const reticleMaterial = new THREE.MeshBasicMaterial();
-    const reticle = new THREE.Mesh(reticleGeometry, reticleMaterial);
-    reticle.matrixAutoUpdate = false;
-    reticle.visible = false;
-    scene.add(reticle);
 
-    const loadModel = (position: THREE.Vector3) => {
-      const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.copy(position);
-      scene.add(mesh);
-    };
+    // Criando a placa como um plano 3D
+    const geometry = new THREE.PlaneGeometry(2, 1); // Largura x Altura
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+    });
+    const placa = new THREE.Mesh(geometry, material);
+    placa.position.set(0, 1, -3);
+    scene.add(placa);
 
-    const onSelect = () => {
-      if (reticle.visible) {
-        const position = new THREE.Vector3();
-        reticle.getWorldPosition(position);
-        loadModel(position);
-      }
-    };
+    // Adicionando um texto básico (mockado)
+    const textCanvas = document.createElement("canvas");
+    const ctx = textCanvas.getContext("2d")!;
+    textCanvas.width = 512;
+    textCanvas.height = 256;
+    ctx.fillStyle = "blue";
+    ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "Bold 32px Arial";
+    ctx.fillText("OBRA DO GOVERNO", 50, 60);
+    ctx.font = "24px Arial";
+    ctx.fillText("Construção da via expressa", 50, 120);
+    ctx.fillText("Prazo: 12 meses", 50, 160);
+    ctx.fillText("Investimento: R$ 5 milhões", 50, 200);
 
-    const controller = renderer.xr.getController(0);
-    controller.addEventListener("select", onSelect);
-    scene.add(controller);
+    const textTexture = new THREE.CanvasTexture(textCanvas);
+    material.map = textTexture;
+    material.needsUpdate = true;
 
+    // Botão AR
     document.body.appendChild(
       ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
     );
 
-    let hitTestSource: XRHitTestSource | null = null;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let localReferenceSpace: XRReferenceSpace | null = null;
-
-    const onSessionStart = async (session: XRSession) => {
-      session.addEventListener("end", onSessionEnd);
-      localReferenceSpace = await session.requestReferenceSpace("local");
-      const viewerSpace = await session.requestReferenceSpace("viewer");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hitTestSource = await (session as any).requestHitTestSource({
-        space: viewerSpace,
+    // Renderização
+    const animate = () => {
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
       });
     };
-
-    // Função para encerrar a sessão de AR
-    const onSessionEnd = () => {
-      hitTestSource = null;
-      localReferenceSpace = null;
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    renderer.xr.addEventListener("sessionstart", (event: any) => {
-      onSessionStart(event.session);
-    });
-    renderer.xr.addEventListener("sessionend", onSessionEnd);
-
-    const animate = () => {
-      renderer.setAnimationLoop(
-        (timestamp: DOMHighResTimeStamp, frame: XRFrame) => {
-          if (frame) {
-            const referenceSpace = renderer.xr.getReferenceSpace();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const hitTestResults = (frame as any).getHitTestResults(
-              hitTestSource
-            );
-
-            if (hitTestResults.length > 0) {
-              const hit = hitTestResults[0];
-              const pose = hit.getPose(referenceSpace);
-              reticle.visible = true;
-              reticle.matrix.fromArray(pose.transform.matrix);
-            } else {
-              reticle.visible = false;
-            }
-          }
-          renderer.render(scene, camera);
-        }
-      );
-    };
-
     animate();
-  }, []);
+  }, [pertoDaObra]);
 
   return null;
 }
