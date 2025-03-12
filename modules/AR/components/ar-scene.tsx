@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import * as THREE from "three";
-import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
-// Coordenadas Mockadas da Obra
+// 📍 Coordenadas da obra (Cidade Universitária, Recife - PE)
 const OBRAS_COORDENADAS = {
-  latitude: -8.0476, // Latitude fictícia
-  longitude: -34.877, // Longitude fictícia
-  raioMetros: 50, // Distância limite para ativar a AR
+  latitude: -8.0476,
+  longitude: -34.877,
+  raioMetros: 50, // Raio de proximidade para ativar a AR
 };
 
-// Função para calcular a distância entre duas coordenadas (Haversine)
+// 📌 Função para calcular a distância entre duas coordenadas (Haversine)
 const calcularDistancia = (
   lat1: number,
   lon1: number,
@@ -35,88 +35,81 @@ const calcularDistancia = (
 
 export function ARScene() {
   const [pertoDaObra, setPertoDaObra] = useState(false);
+  const [coordenadasUsuario, setCoordenadasUsuario] = useState<{
+    latitude: number | null;
+    longitude: number | null;
+  }>({ latitude: null, longitude: null });
 
   useEffect(() => {
     if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(
+      const watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
+          setCoordenadasUsuario({ latitude, longitude });
+
           const distancia = calcularDistancia(
             latitude,
             longitude,
             OBRAS_COORDENADAS.latitude,
             OBRAS_COORDENADAS.longitude
           );
+
+          console.log(
+            `📍 Usuário está a ${distancia.toFixed(2)}m da obra (Limite: ${
+              OBRAS_COORDENADAS.raioMetros
+            }m)`
+          );
+
           setPertoDaObra(distancia <= OBRAS_COORDENADAS.raioMetros);
         },
-        (err) => console.error(err),
+        (err) => console.error("Erro ao obter localização:", err),
         { enableHighAccuracy: true }
       );
+
+      return () => {
+        navigator.geolocation.clearWatch(watchId);
+      };
     }
   }, []);
 
-  useEffect(() => {
-    if (!pertoDaObra) return;
+  return (
+    <div>
+      <h2>Mapa da Obra e sua Posição</h2>
 
-    // Configuração Three.js
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      70,
-      window.innerWidth / window.innerHeight,
-      0.01,
-      20
-    );
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true;
-    document.body.appendChild(renderer.domElement);
+      {/* 🌍 Mapa para mostrar a posição do usuário e da obra */}
+      <MapContainer
+        center={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
+        zoom={15}
+        style={{ height: "100vh", width: "100%", borderRadius: "10px" }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-    // Adiciona luz
-    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-    scene.add(light);
+        {/* 📌 Marcador da Obra */}
+        <Marker
+          position={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
+        >
+          <Popup>🏗️ Obra do Governo</Popup>
+        </Marker>
 
-    // Criando a placa como um plano 3D
-    const geometry = new THREE.PlaneGeometry(2, 1); // Largura x Altura
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      side: THREE.DoubleSide,
-    });
-    const placa = new THREE.Mesh(geometry, material);
-    placa.position.set(0, 1, -3);
-    scene.add(placa);
+        {/* 📍 Marcador do Usuário (se as coordenadas estiverem disponíveis) */}
+        {coordenadasUsuario.latitude && coordenadasUsuario.longitude && (
+          <Marker
+            position={[
+              coordenadasUsuario.latitude,
+              coordenadasUsuario.longitude,
+            ]}
+          >
+            <Popup>🧑 Você está aqui</Popup>
+          </Marker>
+        )}
+      </MapContainer>
 
-    // Adicionando um texto básico (mockado)
-    const textCanvas = document.createElement("canvas");
-    const ctx = textCanvas.getContext("2d")!;
-    textCanvas.width = 512;
-    textCanvas.height = 256;
-    ctx.fillStyle = "blue";
-    ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
-    ctx.fillStyle = "white";
-    ctx.font = "Bold 32px Arial";
-    ctx.fillText("OBRA DO GOVERNO", 50, 60);
-    ctx.font = "24px Arial";
-    ctx.fillText("Construção da via expressa", 50, 120);
-    ctx.fillText("Prazo: 12 meses", 50, 160);
-    ctx.fillText("Investimento: R$ 5 milhões", 50, 200);
-
-    const textTexture = new THREE.CanvasTexture(textCanvas);
-    material.map = textTexture;
-    material.needsUpdate = true;
-
-    // Botão AR
-    document.body.appendChild(
-      ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
-    );
-
-    // Renderização
-    const animate = () => {
-      renderer.setAnimationLoop(() => {
-        renderer.render(scene, camera);
-      });
-    };
-    animate();
-  }, [pertoDaObra]);
-
-  return null;
+      {/* 📝 Informações sobre a proximidade da obra */}
+      <p>
+        {pertoDaObra
+          ? "🎉 Você está dentro do perímetro da obra! A placa será exibida em AR."
+          : "❌ Você ainda está fora do perímetro."}
+      </p>
+    </div>
+  );
 }
