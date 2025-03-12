@@ -10,7 +10,7 @@ import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 const OBRAS_COORDENADAS = {
   latitude: -8.0476,
   longitude: -34.877,
-  raioMetros: 50, // Raio de proximidade para ativar a AR
+  raioMetros: 50000, // Raio de proximidade para ativar a AR
 };
 
 // 📌 Função para calcular a distância entre duas coordenadas (Haversine)
@@ -145,7 +145,7 @@ export function ARScene() {
       <MapContainer
         center={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
         zoom={15}
-        style={{ height: "100vh", width: "100%", borderRadius: "10px" }}
+        style={{ height: "85vh", width: "100%", borderRadius: "10px" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
