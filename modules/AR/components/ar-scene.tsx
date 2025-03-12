@@ -91,7 +91,7 @@ export function ARScene() {
       <MapContainer
         center={[-8.0476, -34.877]}
         zoom={15}
-        style={{ height: "100vh", width: "100%", borderRadius: "10px" }}
+        style={{ height: "90vh", width: "100%", borderRadius: "10px" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
