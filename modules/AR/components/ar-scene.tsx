@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import Link from "next/link";
 
 // 📍 Lista de obras com coordenadas fictícias
 const OBRAS = [
@@ -45,12 +46,32 @@ export function ARScene() {
     longitude: number | null;
   }>({ latitude: null, longitude: null });
 
+  const [obraProxima, setObraProxima] = useState<{
+    id: number;
+    nome: string;
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   useEffect(() => {
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
           setCoordenadasUsuario({ latitude, longitude });
+
+          // Verifica se o usuário está próximo de alguma obra
+          const obraEncontrada = OBRAS.find((obra) => {
+            const distancia = calcularDistancia(
+              latitude,
+              longitude,
+              obra.latitude,
+              obra.longitude
+            );
+            return distancia <= 50; // Raio de 50 metros
+          });
+
+          setObraProxima(obraEncontrada || null);
         },
         (err) => console.error("Erro ao obter localização:", err),
         { enableHighAccuracy: true }
@@ -68,10 +89,7 @@ export function ARScene() {
 
       {/* 🌍 Mapa para mostrar a posição do usuário e das obras */}
       <MapContainer
-        center={[
-          coordenadasUsuario?.latitude || -8.0476,
-          coordenadasUsuario?.longitude || -34.877,
-        ]}
+        center={[-8.0476, -34.877]}
         zoom={15}
         style={{ height: "100vh", width: "100%", borderRadius: "10px" }}
       >
@@ -98,35 +116,19 @@ export function ARScene() {
       </MapContainer>
 
       {/* 📝 Informações sobre a proximidade das obras */}
-      <ul>
-        {OBRAS.map((obra) => {
-          if (coordenadasUsuario.latitude && coordenadasUsuario.longitude) {
-            const distancia = calcularDistancia(
-              coordenadasUsuario.latitude,
-              coordenadasUsuario.longitude,
-              obra.latitude,
-              obra.longitude
-            );
-
-            const dentroDoPerimetro = distancia <= 50; // Raio de 50 metros
-
-            return (
-              <li key={obra.id}>
-                {dentroDoPerimetro
-                  ? `🎉 Você está dentro do perímetro da ${obra.nome}! A placa será exibida em AR.`
-                  : `❌ Você está fora do perímetro da ${obra.nome}.`}
-              </li>
-            );
-          } else {
-            return (
-              <li key={obra.id}>
-                `⚠️ Não foi possível determinar sua posição em relação à $
-                {obra.nome}.`
-              </li>
-            );
-          }
-        })}
-      </ul>
+      {obraProxima ? (
+        <div>
+          <p>
+            🎉 Você está dentro do perímetro da {obraProxima.nome}! A placa pode
+            ser exibida em RA.
+          </p>
+          <Link href={`/ar/${obraProxima.id}`}>
+            <button>🔍 Ver em Realidade Aumentada</button>
+          </Link>
+        </div>
+      ) : (
+        <p>❌ Você está fora do perímetro das obras.</p>
+      )}
     </div>
   );
 }
