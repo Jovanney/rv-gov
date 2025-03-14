@@ -10,17 +10,23 @@ const supabase = createClient(
 export async function GET() {
   try {
     console.log("🚀 Fetching all obras from Supabase...");
-    
+
     const { data, error } = await supabase.from("obras").select("*");
 
     if (error) {
       console.error("❌ Supabase Fetch Error:", error);
-      return NextResponse.json({ error: "Failed to fetch data", details: error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to fetch data", details: error.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ obras: data });
   } catch (error) {
     console.error("❌ Unexpected Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
