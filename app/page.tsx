@@ -1,8 +1,9 @@
 "use client";
+
 import dynamic from "next/dynamic";
 
 const ARScene = dynamic(
-  () => import("@/modules/AR/components/ar-scene").then((mod) => mod.ARScene),
+  () => import("@/modules/AR/components/3d-object").then((mod) => mod.ARScene),
   {
     ssr: false,
   }
