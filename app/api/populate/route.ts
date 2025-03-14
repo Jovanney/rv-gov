@@ -2,6 +2,61 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import wkx from "wkx";
 
+interface GeometryData {
+  geometria?: string;
+  enderecoAreaExecutora?: string;
+}
+
+interface RecursoData {
+  origem?: string;
+  valorInvestimentoPrevisto?: number;
+}
+
+interface ObraData {
+  idUnico: string;
+  nome: string;
+  uf: string;
+  endereco: string;
+  descricao: string;
+  funcaoSocial: string;
+  metaGlobal: string;
+  dataInicialPrevista: string;
+  dataInicialEfetiva: string;
+  dataFinalPrevista: string;
+  dataFinalEfetiva: string;
+  especie: string;
+  natureza: string;
+  situacao: string;
+  dataSituacao: string;
+  geometrias?: GeometryData[];
+  cep: string;
+  fontesDeRecurso?: RecursoData[];
+}
+
+interface TransformedObra {
+  idunico: string;
+  nome: string;
+  uf: string;
+  endereco: string;
+  descricao: string;
+  funcaosocial: string;
+  metaglobal: string;
+  datainicialprevista: string;
+  datainicialefetiva: string;
+  datafinalprevista: string;
+  datafinalefetiva: string;
+  especie: string;
+  natureza: string;
+  situacao: string;
+  datasituacao: string;
+  geometria: string | null;
+  cep: string;
+  enderecoareaexecutora: string | null;
+  recursosorigem: string | null;
+  recursosvalorinvestimento: number;
+}
+
+
 // Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +72,7 @@ function wkbToCoordinates(wkbHex: string) {
     const geometry = wkx.Geometry.parse(buffer);
     const geoJSON = geometry.toGeoJSON() as {
       type: string;
-      coordinates: any;
+      coordinates: number[] | number[][] | number[][][];
     };
 
     if (geoJSON.type === "Point") {
@@ -46,7 +101,7 @@ export async function GET(req: NextRequest) {
 
   console.log(`🚀 Fetching from page 1 to ${maxPages}`);
 
-  let allObras: any[] = [];
+  const allObras: TransformedObra[] = [];
 
   for (let page = minPages; page <= maxPages; page++) {
     try {
@@ -67,7 +122,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Transform data
-      const obrasToInsert = data.content.map((item: any) => {
+      const obrasToInsert: TransformedObra[] = data.content.map((item: ObraData) => {
         const wkbHex = item.geometrias?.[0]?.geometria || null;
         const geometria = wkbHex ? wkbToCoordinates(wkbHex) : null;
 
