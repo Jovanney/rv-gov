@@ -1,19 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polygon, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import * as THREE from "three";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
+import { LatLngExpression } from "leaflet";
 
-// 📍 Coordenadas da obra (Cidade Universitária, Recife - PE)
-const OBRAS_COORDENADAS = {
-  latitude: -8.0476,
-  longitude: -34.877,
-  raioMetros: 50000, // Raio de proximidade para ativar a AR
+// 📍 Coordenadas da base onde a casa será posicionada
+const OBRAS_COORDENADAS = [
+  [-8.046501041119217, -34.950823403861776],
+  [-8.046441285568628, -34.95082273330959],
+  [-8.046499713218187, -34.95082072165306],
+  [-8.046501705069728, -34.950748302017615],
+];
+
+// 📌 Calcular o centro da área para fixar a casa
+const calcularCentro = (coordenadas: number[][]) => {
+  let latSum = 0;
+  let lonSum = 0;
+
+  coordenadas.forEach(([lat, lon]) => {
+    latSum += lat;
+    lonSum += lon;
+  });
+
+  return [latSum / coordenadas.length, lonSum / coordenadas.length];
 };
 
-// 📌 Função para calcular a distância entre duas coordenadas (Haversine)
+const CENTRO_OBRA = calcularCentro(OBRAS_COORDENADAS);
+
+// 📌 Função para calcular distância (Haversine)
 const calcularDistancia = (
   lat1: number,
   lon1: number,
@@ -52,17 +69,15 @@ export function ARScene() {
           const distancia = calcularDistancia(
             latitude,
             longitude,
-            OBRAS_COORDENADAS.latitude,
-            OBRAS_COORDENADAS.longitude
+            CENTRO_OBRA[0],
+            CENTRO_OBRA[1]
           );
 
           console.log(
-            `📍 Usuário está a ${distancia.toFixed(2)}m da obra (Limite: ${
-              OBRAS_COORDENADAS.raioMetros
-            }m)`
+            `📍 Usuário está a ${distancia.toFixed(2)}m da obra (Limite: 50m)`
           );
 
-          setPertoDaObra(distancia <= OBRAS_COORDENADAS.raioMetros);
+          setPertoDaObra(distancia <= 50); // Limite de 50 metros
         },
         (err) => console.error("Erro ao obter localização:", err),
         { enableHighAccuracy: true }
@@ -74,9 +89,8 @@ export function ARScene() {
     }
   }, []);
 
-  // 🚀 Função para inicializar a RA com a casa 3D
+  // 🚀 Função para inicializar a RA com a casa 3D fixa
   const iniciarAR = () => {
-    // Configuração Three.js
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       70,
@@ -94,7 +108,7 @@ export function ARScene() {
     light.position.set(0.5, 1, 0.25);
     scene.add(light);
 
-    // 🌟 Criar a casa com Three.js
+    // 🌟 Criar a casa 3D fixa no local
     const casa = new THREE.Group();
 
     // Base da Casa
@@ -104,7 +118,7 @@ export function ARScene() {
     base.position.set(0, 0.5, -3);
     casa.add(base);
 
-    // Telhado da Casa (Pirâmide)
+    // Telhado da Casa
     const roofGeometry = new THREE.ConeGeometry(1.6, 1, 4);
     const roofMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
     const roof = new THREE.Mesh(roofGeometry, roofMaterial);
@@ -118,6 +132,8 @@ export function ARScene() {
     door.position.set(0, 0.2, -2.51);
     casa.add(door);
 
+    // Fixando a casa no centro definido pelas coordenadas
+    casa.position.set(0, 0, -5);
     scene.add(casa);
 
     // Botão AR
@@ -140,20 +156,21 @@ export function ARScene() {
 
       {/* 🌍 Mapa para mostrar a posição do usuário e da obra */}
       <MapContainer
-        center={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
-        zoom={15}
+        center={CENTRO_OBRA as LatLngExpression}
+        zoom={17}
         style={{ height: "85vh", width: "100%", borderRadius: "10px" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {/* 📌 Marcador da Obra */}
-        <Marker
-          position={[OBRAS_COORDENADAS.latitude, OBRAS_COORDENADAS.longitude]}
+        {/* 📌 Polígono da Área da Obra */}
+        <Polygon
+          positions={OBRAS_COORDENADAS as LatLngExpression[]}
+          color="blue"
         >
-          <Popup>🏗️ Obra do Governo</Popup>
-        </Marker>
+          <Popup>🏗️ Área da Obra</Popup>
+        </Polygon>
 
-        {/* 📍 Marcador do Usuário (se as coordenadas estiverem disponíveis) */}
+        {/* 📍 Marcador do Usuário */}
         {coordenadasUsuario.latitude && coordenadasUsuario.longitude && (
           <Marker
             position={[
