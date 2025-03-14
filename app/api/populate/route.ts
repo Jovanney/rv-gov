@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import wkx from "wkx";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -7,23 +8,41 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Convert WKB (hex) to latitude & longitude
+// Convert WKB (hex) to a list of coordinates
 function wkbToCoordinates(wkbHex: string) {
   if (!wkbHex) return null;
 
-  const buffer = Buffer.from(wkbHex, "hex");
-  const littleEndian = buffer.readUInt8(0) === 1;
+  try {
+    const buffer = Buffer.from(wkbHex, "hex");
+    const geometry = wkx.Geometry.parse(buffer);
+    const geoJSON = geometry.toGeoJSON() as {
+      type: string;
+      coordinates: any;
+    };
 
-  const longitude = littleEndian ? buffer.readDoubleLE(5) : buffer.readDoubleBE(5);
-  const latitude = littleEndian ? buffer.readDoubleLE(13) : buffer.readDoubleBE(13);
+    if (geoJSON.type === "Point") {
+      return `${geoJSON.coordinates[1]},${geoJSON.coordinates[0]}`; // lat,lon
+    } else if (geoJSON.type === "LineString" || geoJSON.type === "MultiPoint") {
+      const coordinates = geoJSON.coordinates as [number, number][]; // Ensures it's an array of [lon, lat]
+      return coordinates.map(([lon, lat]) => `${lat},${lon}`).join("/"); // lat,lon/lat,lon
+    } else if (geoJSON.type === "Polygon" || geoJSON.type === "MultiLineString") {
+      const coordinates = geoJSON.coordinates as [number, number][][]; // Array of arrays of [lon, lat]
+      return coordinates
+        .map((ring) => ring.map(([lon, lat]) => `${lat},${lon}`).join("/"))
+        .join(" | "); // Separate different rings with "|"
+    }
 
-  return { latitude, longitude };
+    return null;
+  } catch (error) {
+    console.error("Error parsing WKB:", error);
+    return null;
+  }
 }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const minPages = parseInt(searchParams.get("minPages") || "1", 10); // Default to 5 pages
-  const maxPages = parseInt(searchParams.get("maxPages") || "5", 10); // Default to 5 pages
+  const minPages = parseInt(searchParams.get("minPages") || "1", 10);
+  const maxPages = parseInt(searchParams.get("maxPages") || "5", 10);
 
   console.log(`🚀 Fetching from page 1 to ${maxPages}`);
 
@@ -31,7 +50,6 @@ export async function GET(req: NextRequest) {
 
   for (let page = minPages; page <= maxPages; page++) {
     try {
-      // Fetch data for the current page
       const apiUrl = `https://api.obrasgov.gestao.gov.br/obrasgov/api/projeto-investimento?uf=PE&page=${page}`;
       console.log(`🔹 Fetching: ${apiUrl}`);
 
@@ -51,8 +69,7 @@ export async function GET(req: NextRequest) {
       // Transform data
       const obrasToInsert = data.content.map((item: any) => {
         const wkbHex = item.geometrias?.[0]?.geometria || null;
-        const coordinates = wkbHex ? wkbToCoordinates(wkbHex) : null;
-        const geometria = coordinates ? `${coordinates.latitude},${coordinates.longitude}` : null;
+        const geometria = wkbHex ? wkbToCoordinates(wkbHex) : null;
 
         return {
           idunico: item.idUnico,
@@ -70,7 +87,7 @@ export async function GET(req: NextRequest) {
           natureza: item.natureza,
           situacao: item.situacao,
           datasituacao: item.dataSituacao,
-          geometria, // Now stores "latitude,longitude"
+          geometria, // Now stores multiple points as "lat1,lon1/lat2,lon2/lat3,lon3"
           cep: item.cep,
           enderecoareaexecutora: item.geometrias?.[0]?.enderecoAreaExecutora || null,
           recursosorigem: item.fontesDeRecurso?.[0]?.origem || null,
@@ -91,7 +108,7 @@ export async function GET(req: NextRequest) {
     const uniqueObras = Array.from(
       new Map(allObras.map((obra) => [obra.idunico, obra])).values()
     );
-    
+
     const { error } = await supabase.from("obras").upsert(uniqueObras, { onConflict: "idunico" });
 
     if (error) {
