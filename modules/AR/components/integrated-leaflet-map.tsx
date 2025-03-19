@@ -2,10 +2,47 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getConstructionsAction } from "../actions/get-constructions-action";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { LatLngExpression } from "leaflet";
 import { useEffect, useState } from "react";
+
+function FocusOnUser({
+  coordenadasUsuario,
+}: {
+  coordenadasUsuario: { latitude: number | null; longitude: number | null };
+}) {
+  const map = useMap();
+
+  const handleFocus = () => {
+    if (coordenadasUsuario.latitude && coordenadasUsuario.longitude) {
+      map.setView(
+        [coordenadasUsuario.latitude, coordenadasUsuario.longitude],
+        15
+      );
+    }
+  };
+
+  return coordenadasUsuario.latitude && coordenadasUsuario.longitude ? (
+    <button
+      onClick={handleFocus}
+      style={{
+        position: "absolute",
+        top: "10px",
+        right: "10px",
+        padding: "10px 15px",
+        backgroundColor: "#007bff",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        zIndex: 1000,
+      }}
+    >
+      📍 Focar no Usuário
+    </button>
+  ) : null;
+}
 
 export function IntegratedLeafletMap() {
   const {
@@ -107,6 +144,8 @@ export function IntegratedLeafletMap() {
             <Popup>🧑 Você está aqui</Popup>
           </Marker>
         )}
+
+        <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
     </div>
   );
