@@ -4,8 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { getConstructionsAction } from "../actions/get-constructions-action";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { LatLngExpression } from "leaflet";
+import { LatLngExpression, divIcon } from "leaflet";
 import { useEffect, useState } from "react";
+
+const emptyIcon = divIcon({
+  className: "custom-marker",
+  html: '<div class="pulsing-dot"></div>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
 
 function FocusOnUser({
   coordenadasUsuario,
@@ -73,26 +80,21 @@ export function IntegratedLeafletMap() {
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
-          const { latitude, longitude } = pos.coords;
+          const { latitude, longitude, accuracy } = pos.coords;
+          console.log(
+            `📍 Latitude: ${latitude}, Longitude: ${longitude}, Precisão: ${accuracy}m`
+          );
+
           setCoordenadasUsuario({ latitude, longitude });
 
-          // const distancia = calcularDistancia(
-          //   latitude,
-          //   longitude,
-          //   OBRAS_COORDENADAS.latitude,
-          //   OBRAS_COORDENADAS.longitude
-          // );
-
-          // console.log(
-          //   `📍 Usuário está a ${distancia.toFixed(2)}m da obra (Limite: ${
-          //     OBRAS_COORDENADAS.raioMetros
-          //   }m)`
-          // );
-
-          // setPertoDaObra(distancia <= OBRAS_COORDENADAS.raioMetros);
+          if (accuracy > 50) {
+            console.warn(
+              "⚠️ A precisão está baixa. Tente se mover ou ativar o GPS."
+            );
+          }
         },
         (err) => console.error("Erro ao obter localização:", err),
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
 
       return () => {
@@ -101,20 +103,12 @@ export function IntegratedLeafletMap() {
     }
   }, []);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-
-  if (!constructions) {
-    return <div>No constructions found</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!constructions) return <div>No constructions found</div>;
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
       <h2>Mapa da Obra e sua Posição</h2>
       <MapContainer
         center={[-8.0476, -34.877]}
@@ -122,6 +116,7 @@ export function IntegratedLeafletMap() {
         style={{ height: "85vh", width: "100%", borderRadius: "10px" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
         {formatedConstructions?.map((obra) => (
           <Marker
             key={obra.id}
@@ -140,13 +135,39 @@ export function IntegratedLeafletMap() {
               coordenadasUsuario.latitude,
               coordenadasUsuario.longitude,
             ]}
-          >
-            <Popup>🧑 Você está aqui</Popup>
-          </Marker>
+            icon={emptyIcon}
+          />
         )}
 
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
+
+      <style jsx global>{`
+        .pulsing-dot {
+          width: 15px;
+          height: 15px;
+          background-color: rgba(0, 123, 255, 0.8);
+          border-radius: 50%;
+          position: relative;
+          box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+          animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(1.5);
+            opacity: 0.4;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 0.8;
+          }
+        }
+      `}</style>
     </div>
   );
 }
