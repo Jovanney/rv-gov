@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import * as THREE from "three";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 
-// 📍 Coordenadas da obra (Cidade Universitária, Recife - PE)
 const OBRAS_COORDENADAS = {
   latitude: -8.0476,
   longitude: -34.877,
@@ -73,9 +72,7 @@ export function ARScene() {
     }
   }, []);
 
-  // Função para inicializar a cena de RA
   const iniciarAR = () => {
-    // Configuração básica da cena, câmera e renderizador
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       70,
