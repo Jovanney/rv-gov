@@ -13,7 +13,6 @@ const OBRAS_COORDENADAS = {
   raioMetros: 50000, // Raio de proximidade para ativar a AR
 };
 
-// 📌 Função para calcular a distância entre duas coordenadas (Haversine)
 const calcularDistancia = (
   lat1: number,
   lon1: number,

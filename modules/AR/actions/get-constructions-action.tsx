@@ -5,9 +5,14 @@ import { HTTPError } from "ky";
 
 export async function getConstructionsAction() {
   try {
-    const constructions = await localClient
-      .get("scan")
-      .json<{ obras: { geometria: string }[] }>();
+    const constructions = await localClient.get("scan").json<{
+      obras: {
+        geometria: string;
+        nome: string;
+        descricao: string;
+        idunico: string;
+      }[];
+    }>();
     console.log(constructions);
     return {
       success: true,
