@@ -6,6 +6,10 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { LatLngExpression, divIcon } from "leaflet";
 import { useEffect, useState } from "react";
+// import HealthGenericImage from "@/public/helth-generic.png";
+// import HouseGeneric from "@/public/house-generic.png";
+// import PavimentacaoGeneric from "@/public/pavimentacao-generic.png";
+// import SchollGeneric from "@/public/pavimentacao-generic.png";
 
 const emptyIcon = divIcon({
   className: "custom-marker",
@@ -74,6 +78,7 @@ export function IntegratedLeafletMap() {
       .split("|")
       .map((latLon) => latLon.split(","))
       .map(([lat, lon]) => [parseFloat(lat), parseFloat(lon)]),
+    raio: obra.idunico === "46014.26-56" ? 500000000 : 100,
   }));
 
   useEffect(() => {
