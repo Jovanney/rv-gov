@@ -6,10 +6,39 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { LatLngExpression, divIcon } from "leaflet";
 import { useEffect, useState } from "react";
-// import HealthGenericImage from "@/public/helth-generic.png";
-// import HouseGeneric from "@/public/house-generic.png";
-// import PavimentacaoGeneric from "@/public/pavimentacao-generic.png";
-// import SchollGeneric from "@/public/pavimentacao-generic.png";
+import habitacionalIcon from "@/public/habitacional.webp";
+import marketIcon from "@/public/market.webp";
+import schoolIcon from "@/public/scholl.png";
+import calcamentoIcon from "@/public/calcamento.webp";
+import L from "leaflet";
+
+const habitacionalMapIcon = new L.Icon({
+  iconUrl: habitacionalIcon.src,
+  iconSize: [32, 32], // ajuste conforme necessário
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const marketMapIcon = new L.Icon({
+  iconUrl: marketIcon.src,
+  iconSize: [32, 32], // ajuste conforme necessário
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const schoolMapIcon = new L.Icon({
+  iconUrl: schoolIcon.src,
+  iconSize: [32, 32], // ajuste conforme necessário
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const calcamentoMapIcon = new L.Icon({
+  iconUrl: calcamentoIcon.src,
+  iconSize: [32, 32], // ajuste conforme necessário
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
 
 const emptyIcon = divIcon({
   className: "custom-marker",
@@ -70,16 +99,28 @@ export function IntegratedLeafletMap() {
     longitude: number | null;
   }>({ latitude: null, longitude: null });
 
-  const formatedConstructions = constructions?.data?.obras.map((obra) => ({
-    id: obra.idunico,
-    nome: obra.nome,
-    descricao: obra.descricao,
-    coordenadas: obra.geometria
-      .split("|")
-      .map((latLon) => latLon.split(","))
-      .map(([lat, lon]) => [parseFloat(lat), parseFloat(lon)]),
-    raio: obra.idunico === "46014.26-56" ? 500000000 : 100,
-  }));
+  const formatedConstructions = constructions?.data?.obras.map((obra) => {
+    const descricao = obra.descricao || "";
+    const isHabitacional = descricao.toUpperCase().includes("HABITACIONAIS");
+    const isMarket = descricao.toUpperCase().includes("MERCADO");
+    const isSchool = descricao.toUpperCase().includes("ESCOLA");
+    const isPavimentacao = descricao.toUpperCase().includes("PAVIMENTAÇÃO");
+
+    return {
+      id: obra.idunico,
+      nome: obra.nome,
+      descricao: descricao,
+      coordenadas: obra.geometria
+        .split("|")
+        .map((latLon) => latLon.split(","))
+        .map(([lat, lon]) => [parseFloat(lat), parseFloat(lon)]),
+      raio: obra.idunico === "46014.26-56" ? 500000000 : 100,
+      isHabitacional,
+      isMarket,
+      isSchool,
+      isPavimentacao,
+    };
+  });
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -126,6 +167,17 @@ export function IntegratedLeafletMap() {
           <Marker
             key={obra.id}
             position={obra.coordenadas[0] as LatLngExpression}
+            icon={
+              obra.isHabitacional
+                ? habitacionalMapIcon
+                : obra.isMarket
+                ? marketMapIcon
+                : obra.isSchool
+                ? schoolMapIcon
+                : obra.isPavimentacao
+                ? calcamentoMapIcon
+                : emptyIcon
+            }
           >
             <Popup>
               <strong>{obra.nome}</strong>
