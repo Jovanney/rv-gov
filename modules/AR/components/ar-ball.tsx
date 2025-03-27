@@ -36,14 +36,26 @@ export function ARBall({ onExit }: ARBallProps) {
     light.position.set(0.5, 1, 0.25);
     scene.add(light);
 
-    // Cria a esfera 3D (bola) e define sua posição (ancorada, por exemplo, 1m à frente da câmera)
-    const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const sphere = new THREE.Mesh(geometry, material);
+    // Cria a esfera 3D (bola) e define sua posição (ancorada 1 metro à frente da câmera)
+    const sphereGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+    const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(0, 0, -1);
     scene.add(sphere);
 
-    // Cria o botão AR do Three.js e adiciona ao container
+    // Implementando oclusão:
+    // Cria uma occlusion mesh que não renderiza cor (apenas atualiza o depth buffer)
+    const occlusionGeometry = new THREE.PlaneGeometry(2, 2);
+    const occlusionMaterial = new THREE.MeshBasicMaterial({
+      colorWrite: false, // Não renderiza cor
+    });
+    const occlusionMesh = new THREE.Mesh(occlusionGeometry, occlusionMaterial);
+    // Posicione a occlusion mesh entre a câmera e a bola.
+    // Aqui, ela é posicionada a 0.7 metros à frente da câmera (ou seja, 0.3 metros à frente da bola).
+    occlusionMesh.position.set(0, 0, -0.7);
+    scene.add(occlusionMesh);
+
+    // Cria o botão AR do Three.js para iniciar a experiência AR
     const arButton = ARButton.createButton(renderer, {
       requiredFeatures: ["hit-test"],
     });
@@ -54,7 +66,7 @@ export function ARBall({ onExit }: ARBallProps) {
       renderer.render(scene, camera);
     });
 
-    // Cleanup ao desmontar
+    // Cleanup ao desmontar o componente
     return () => {
       renderer.setAnimationLoop(null);
       while (container.firstChild) {
