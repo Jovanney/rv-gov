@@ -11,31 +11,32 @@ import marketIcon from "@/public/market.webp";
 import schoolIcon from "@/public/scholl.png";
 import calcamentoIcon from "@/public/calcamento.webp";
 import L from "leaflet";
+import { ARBall } from "./ar-ball";
 
 const habitacionalMapIcon = new L.Icon({
   iconUrl: habitacionalIcon.src,
-  iconSize: [32, 32], // ajuste conforme necessário
+  iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
 
 const marketMapIcon = new L.Icon({
   iconUrl: marketIcon.src,
-  iconSize: [32, 32], // ajuste conforme necessário
+  iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
 
 const schoolMapIcon = new L.Icon({
   iconUrl: schoolIcon.src,
-  iconSize: [32, 32], // ajuste conforme necessário
+  iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
 
 const calcamentoMapIcon = new L.Icon({
   iconUrl: calcamentoIcon.src,
-  iconSize: [32, 32], // ajuste conforme necessário
+  iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
@@ -99,6 +100,9 @@ export function IntegratedLeafletMap() {
     longitude: number | null;
   }>({ latitude: null, longitude: null });
 
+  // Estado para controlar a exibição do modo AR
+  const [isARActive, setIsARActive] = useState(false);
+
   const formatedConstructions = constructions?.data?.obras.map((obra) => {
     const descricao = obra.descricao || "";
     const isHabitacional = descricao.toUpperCase().includes("HABITACIONAIS");
@@ -153,6 +157,11 @@ export function IntegratedLeafletMap() {
   if (error) return <div>Error: {error.message}</div>;
   if (!constructions) return <div>No constructions found</div>;
 
+  // Aqui você pode implementar uma lógica para exibir o botão AR somente quando o usuário estiver próximo de uma obra.
+  // Neste exemplo, exibiremos o botão se houver coordenadas do usuário disponíveis.
+  const shouldShowARButton =
+    coordenadasUsuario.latitude && coordenadasUsuario.longitude;
+
   return (
     <div style={{ position: "relative" }}>
       <h2>Mapa da Obra e sua Posição</h2>
@@ -198,6 +207,30 @@ export function IntegratedLeafletMap() {
 
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
+
+      {/* Botão para ativar o modo AR */}
+      {shouldShowARButton && !isARActive && (
+        <button
+          onClick={() => setIsARActive(true)}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: "20px",
+            padding: "10px 15px",
+            backgroundColor: "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            zIndex: 1000,
+          }}
+        >
+          Ativar AR
+        </button>
+      )}
+
+      {/* Renderiza o componente ARBall quando isARActive for true */}
+      {isARActive && <ARBall onExit={() => setIsARActive(false)} />}
 
       <style jsx global>{`
         .pulsing-dot {
