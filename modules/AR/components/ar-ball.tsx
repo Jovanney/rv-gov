@@ -24,6 +24,9 @@ export function ARBall({ onExit }: { onExit: () => void }) {
       0.01,
       20
     );
+    // Posiciona a câmera para que ela enxergue a cena
+    camera.position.set(0, 1.6, 3);
+    camera.lookAt(0, 0, 0);
     scene.add(camera);
 
     // Luz ambiente
@@ -34,6 +37,22 @@ export function ARBall({ onExit }: { onExit: () => void }) {
     // AxesHelper para visualização das direções (X: vermelho, Y: verde, Z: azul)
     const axesHelper = new THREE.AxesHelper(1);
     scene.add(axesHelper);
+
+    // Adiciona um GridHelper para ter referência do chão
+    const gridHelper = new THREE.GridHelper(10, 10);
+    scene.add(gridHelper);
+
+    // Objeto de debug: esfera amarela na origem
+    const debugSphereGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+    const debugSphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+    });
+    const debugSphere = new THREE.Mesh(
+      debugSphereGeometry,
+      debugSphereMaterial
+    );
+    debugSphere.position.set(0, 0, 0);
+    scene.add(debugSphere);
 
     // Carrega o modelo GLTF
     const loader = new GLTFLoader();
@@ -56,29 +75,12 @@ export function ARBall({ onExit }: { onExit: () => void }) {
         scene.add(model);
 
         // Adiciona uma esfera de debug para indicar a posição do modelo
-        const debugSphereGeometry = new THREE.SphereGeometry(0.05, 16, 16);
-        const debugSphereMaterial = new THREE.MeshBasicMaterial({
-          color: 0xffff00,
-        });
-        const debugSphere = new THREE.Mesh(
+        const modelDebugSphere = new THREE.Mesh(
           debugSphereGeometry,
           debugSphereMaterial
         );
-        // Posiciona a esfera no mesmo lugar que o modelo
-        debugSphere.position.copy(model.position);
-        scene.add(debugSphere);
-
-        // (Opcional) Adiciona uma seta para indicar a direção "para cima" a partir do modelo
-        const arrowDirection = new THREE.Vector3(0, 1, 0); // para cima
-        const arrowLength = 0.5;
-        const arrowColor = 0xff0000;
-        const arrowHelper = new THREE.ArrowHelper(
-          arrowDirection,
-          model.position,
-          arrowLength,
-          arrowColor
-        );
-        scene.add(arrowHelper);
+        modelDebugSphere.position.copy(model.position);
+        scene.add(modelDebugSphere);
       },
       undefined,
       (error) => {
