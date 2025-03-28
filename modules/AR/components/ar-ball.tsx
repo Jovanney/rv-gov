@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 export function ARBall({ onExit }: { onExit: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,35 +57,21 @@ export function ARBall({ onExit }: { onExit: () => void }) {
 
     // Carrega o modelo GLTF
     const loader = new GLTFLoader();
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+    loader.setDRACOLoader(dracoLoader);
+
     loader.load(
-      "https://rv-gov-seven.vercel.app/model.gltf",
+      "https://rv-gov-seven.vercel.app/model_library.gltf",
       (gltf) => {
-        console.log("Modelo carregado com sucesso!");
-        const model = gltf.scene;
-
-        // Calcula a bounding box do modelo
-        const box = new THREE.Box3().setFromObject(model);
-        console.log("Bounding Box:", box.min, box.max);
-
-        // Ajusta a posição do modelo para que a base (mínimo Y) fique em 0
-        model.position.y -= box.min.y;
-
-        // Aumenta o tamanho do modelo (ajuste o fator conforme necessário)
-        model.scale.set(50, 50, 50);
-
-        scene.add(model);
-
-        // Adiciona uma esfera de debug para indicar a posição do modelo
-        const modelDebugSphere = new THREE.Mesh(
-          debugSphereGeometry,
-          debugSphereMaterial
-        );
-        modelDebugSphere.position.copy(model.position);
-        scene.add(modelDebugSphere);
+        console.log("Model successfully loaded:", gltf);
+        scene.add(gltf.scene);
       },
-      undefined,
+      (xhr) => {
+        console.log(`Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+      },
       (error) => {
-        console.error("Erro ao carregar o modelo:", error);
+        console.error("Error loading model:", error);
       }
     );
 
