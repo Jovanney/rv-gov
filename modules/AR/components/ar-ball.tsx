@@ -54,6 +54,31 @@ export function ARBall({ onExit }: { onExit: () => void }) {
         model.scale.set(2, 2, 2);
 
         scene.add(model);
+
+        // Adiciona uma esfera de debug para indicar a posição do modelo
+        const debugSphereGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const debugSphereMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffff00,
+        });
+        const debugSphere = new THREE.Mesh(
+          debugSphereGeometry,
+          debugSphereMaterial
+        );
+        // Posiciona a esfera no mesmo lugar que o modelo
+        debugSphere.position.copy(model.position);
+        scene.add(debugSphere);
+
+        // (Opcional) Adiciona uma seta para indicar a direção "para cima" a partir do modelo
+        const arrowDirection = new THREE.Vector3(0, 1, 0); // para cima
+        const arrowLength = 0.5;
+        const arrowColor = 0xff0000;
+        const arrowHelper = new THREE.ArrowHelper(
+          arrowDirection,
+          model.position,
+          arrowLength,
+          arrowColor
+        );
+        scene.add(arrowHelper);
       },
       undefined,
       (error) => {
