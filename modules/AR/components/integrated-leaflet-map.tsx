@@ -55,8 +55,8 @@ const emptyIcon = divIcon({
   iconAnchor: [10, 10],
 });
 
-// Limiar (em metros) para que o botão AR seja exibido
-const AR_THRESHOLD = 50;
+// Raio reduzido para exibir o botão AR (em metros)
+const AR_THRESHOLD = 10;
 
 function FocusOnUser({
   coordenadasUsuario,
@@ -129,7 +129,7 @@ export function IntegratedLeafletMap() {
         .split("|")
         .map((latLon) => latLon.split(","))
         .map(([lat, lon]) => [parseFloat(lat), parseFloat(lon)]),
-      // Aqui você pode definir o raio desejado para cada obra; se não houver, usamos AR_THRESHOLD
+      // Define o raio para cada obra; se não houver, usamos AR_THRESHOLD
       raio: obra.idunico === "46014.26-56" ? 500000000 : AR_THRESHOLD,
       isHabitacional,
       isMarket,
@@ -169,20 +169,23 @@ export function IntegratedLeafletMap() {
   if (error) return <div>Error: {error.message}</div>;
   if (!constructions) return <div>No constructions found</div>;
 
-  const showARButton =
+  // Verifica se o usuário está dentro do raio de alguma obra e retorna a obra encontrada
+  const constructionInRange = formatedConstructions?.find((obra) => {
+    if (!coordenadasUsuario.latitude || !coordenadasUsuario.longitude)
+      return false;
+    const userLatLng = L.latLng(
+      coordenadasUsuario.latitude,
+      coordenadasUsuario.longitude
+    );
+    const obraLatLng = L.latLng(obra.coordenadas[0][0], obra.coordenadas[0][1]);
+    return userLatLng.distanceTo(obraLatLng) <= AR_THRESHOLD;
+  });
+
+  const showARButton = Boolean(
     coordenadasUsuario.latitude &&
-    coordenadasUsuario.longitude &&
-    formatedConstructions?.some((obra) => {
-      const userLatLng = L.latLng(
-        coordenadasUsuario.latitude!,
-        coordenadasUsuario.longitude!
-      );
-      const obraLatLng = L.latLng(
-        obra.coordenadas[0][0],
-        obra.coordenadas[0][1]
-      );
-      return userLatLng.distanceTo(obraLatLng) <= AR_THRESHOLD;
-    });
+      coordenadasUsuario.longitude &&
+      constructionInRange
+  );
 
   return (
     <div style={{ position: "relative" }}>
@@ -241,8 +244,8 @@ export function IntegratedLeafletMap() {
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
 
-      {/* Botão para ativar o modo AR, exibido apenas se o usuário estiver próximo de uma obra */}
-      {showARButton && !isARActive && (
+      {/* Botão para ativar o modo AR com mensagem personalizada */}
+      {showARButton && !isARActive && constructionInRange && (
         <button
           onClick={() => setIsARActive(true)}
           style={{
@@ -258,7 +261,8 @@ export function IntegratedLeafletMap() {
             zIndex: 1000,
           }}
         >
-          Ativar AR
+          Você está no raio da obra {constructionInRange.nome}. Clique para ver
+          a obra
         </button>
       )}
 
