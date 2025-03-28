@@ -56,7 +56,7 @@ const emptyIcon = divIcon({
 });
 
 // Raio reduzido para exibir o botão AR (em metros)
-const AR_THRESHOLD = 10;
+const AR_THRESHOLD = 40;
 
 function FocusOnUser({
   coordenadasUsuario,
