@@ -66,7 +66,7 @@ const emptyIcon = divIcon({
 });
 
 // Raio reduzido para exibir o botão AR (em metros)
-const AR_THRESHOLD = 40;
+const AR_THRESHOLD = 150;
 
 function FocusOnUser({
   coordenadasUsuario,
@@ -177,11 +177,12 @@ export function IntegratedLeafletMap() {
     }
   }, []);
 
-  if (isLoading) return (
-    <div className="h-screen w-screen flex justify-center items-center">
-      <AiOutlineLoading3Quarters size={100} className="animate-spin" />
-    </div>
-  );
+  if (isLoading)
+    return (
+      <div className="h-screen w-screen flex justify-center items-center">
+        <AiOutlineLoading3Quarters size={100} className="animate-spin" />
+      </div>
+    );
 
   if (error) return <div>Error: {error.message}</div>;
   if (!constructions) return <div>No constructions found</div>;
@@ -206,7 +207,9 @@ export function IntegratedLeafletMap() {
 
   return (
     <div style={{ position: "relative" }}>
-      <h2 className="h-full flex justify-center p-2 font-semibold">Visualizador de obras</h2>
+      <h2 className="h-full flex justify-center p-2 font-semibold">
+        Visualizador de obras
+      </h2>
       <MapContainer
         center={[-8.0476, -34.877]}
         zoom={15}
@@ -222,14 +225,14 @@ export function IntegratedLeafletMap() {
                 obra.isHabitacional
                   ? habitacionalMapIcon
                   : obra.isMarket
-                    ? marketMapIcon
-                    : obra.isSchool
-                      ? schoolMapIcon
-                      : obra.isPavimentacao
-                        ? calcamentoMapIcon
-                        : obra.isLibrary
-                          ? bibliotecaMapIcon
-                          : emptyIcon
+                  ? marketMapIcon
+                  : obra.isSchool
+                  ? schoolMapIcon
+                  : obra.isPavimentacao
+                  ? calcamentoMapIcon
+                  : obra.isLibrary
+                  ? bibliotecaMapIcon
+                  : emptyIcon
               }
             >
               <Popup>
