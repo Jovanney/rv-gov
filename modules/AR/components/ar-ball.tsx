@@ -31,20 +31,27 @@ export function ARBall({ onExit }: { onExit: () => void }) {
     light.position.set(0.5, 1, 0.25);
     scene.add(light);
 
+    // AxesHelper para visualização das direções (X: vermelho, Y: verde, Z: azul)
+    const axesHelper = new THREE.AxesHelper(1);
+    scene.add(axesHelper);
+
     // Carrega o modelo GLTF
     const loader = new GLTFLoader();
     loader.load(
       "/model.gltf",
       (gltf) => {
+        console.log("Modelo carregado com sucesso!");
         const model = gltf.scene;
 
         // Calcula a bounding box do modelo
         const box = new THREE.Box3().setFromObject(model);
+        console.log("Bounding Box:", box.min, box.max);
+
         // Ajusta a posição do modelo para que a base (mínimo Y) fique em 0
         model.position.y -= box.min.y;
 
-        // Opcional: ajuste de escala se necessário
-        // model.scale.set(0.5, 0.5, 0.5);
+        // Aumenta o tamanho do modelo (ajuste o fator conforme necessário)
+        model.scale.set(2, 2, 2);
 
         scene.add(model);
       },
