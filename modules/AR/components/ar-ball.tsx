@@ -24,6 +24,9 @@ export function ARBall({ onExit }: { onExit: () => void }) {
       0.01,
       20
     );
+    // Posiciona a câmera para que ela enxergue a cena
+    camera.position.set(0, 1.6, 3);
+    camera.lookAt(0, 0, 0);
     scene.add(camera);
 
     // Luz ambiente
@@ -31,22 +34,53 @@ export function ARBall({ onExit }: { onExit: () => void }) {
     light.position.set(0.5, 1, 0.25);
     scene.add(light);
 
+    // AxesHelper para visualização das direções (X: vermelho, Y: verde, Z: azul)
+    const axesHelper = new THREE.AxesHelper(1);
+    scene.add(axesHelper);
+
+    // Adiciona um GridHelper para ter referência do chão
+    const gridHelper = new THREE.GridHelper(10, 10);
+    scene.add(gridHelper);
+
+    // Objeto de debug: esfera amarela na origem
+    const debugSphereGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+    const debugSphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+    });
+    const debugSphere = new THREE.Mesh(
+      debugSphereGeometry,
+      debugSphereMaterial
+    );
+    debugSphere.position.set(0, 0, 0);
+    scene.add(debugSphere);
+
     // Carrega o modelo GLTF
     const loader = new GLTFLoader();
     loader.load(
-      "/model.gltf",
+      "https://rv-gov-seven.vercel.app/model.gltf",
       (gltf) => {
+        console.log("Modelo carregado com sucesso!");
         const model = gltf.scene;
 
         // Calcula a bounding box do modelo
         const box = new THREE.Box3().setFromObject(model);
+        console.log("Bounding Box:", box.min, box.max);
+
         // Ajusta a posição do modelo para que a base (mínimo Y) fique em 0
         model.position.y -= box.min.y;
 
-        // Opcional: ajuste de escala se necessário
-        // model.scale.set(0.5, 0.5, 0.5);
+        // Aumenta o tamanho do modelo (ajuste o fator conforme necessário)
+        model.scale.set(50, 50, 50);
 
         scene.add(model);
+
+        // Adiciona uma esfera de debug para indicar a posição do modelo
+        const modelDebugSphere = new THREE.Mesh(
+          debugSphereGeometry,
+          debugSphereMaterial
+        );
+        modelDebugSphere.position.copy(model.position);
+        scene.add(modelDebugSphere);
       },
       undefined,
       (error) => {
