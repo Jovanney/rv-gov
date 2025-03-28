@@ -18,6 +18,7 @@ import marketIcon from "@/public/market.webp";
 import schoolIcon from "@/public/scholl.png";
 import calcamentoIcon from "@/public/calcamento.webp";
 import libraryIcon from "@/public/library.png";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 import L from "leaflet";
 import { ARBall } from "./ar-ball";
@@ -176,7 +177,12 @@ export function IntegratedLeafletMap() {
     }
   }, []);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return (
+    <div className="h-screen w-screen flex justify-center items-center">
+      <AiOutlineLoading3Quarters size={100} className="animate-spin" />
+    </div>
+  );
+
   if (error) return <div>Error: {error.message}</div>;
   if (!constructions) return <div>No constructions found</div>;
 
@@ -200,7 +206,7 @@ export function IntegratedLeafletMap() {
 
   return (
     <div style={{ position: "relative" }}>
-      <h2>Mapa da Obra e sua Posição</h2>
+      <h2 className="h-full flex justify-center p-2 font-semibold">Visualizador de obras</h2>
       <MapContainer
         center={[-8.0476, -34.877]}
         zoom={15}
