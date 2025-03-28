@@ -2,7 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getConstructionsAction } from "../actions/get-constructions-action";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Circle,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { LatLngExpression, divIcon } from "leaflet";
 import { useEffect, useState } from "react";
@@ -47,6 +54,9 @@ const emptyIcon = divIcon({
   iconSize: [20, 20],
   iconAnchor: [10, 10],
 });
+
+// Limiar (em metros) para que o botão AR seja exibido
+const AR_THRESHOLD = 50;
 
 function FocusOnUser({
   coordenadasUsuario,
@@ -103,6 +113,7 @@ export function IntegratedLeafletMap() {
   // Estado para controlar a exibição do modo AR
   const [isARActive, setIsARActive] = useState(false);
 
+  // Formata as construções
   const formatedConstructions = constructions?.data?.obras.map((obra) => {
     const descricao = obra.descricao || "";
     const isHabitacional = descricao.toUpperCase().includes("HABITACIONAIS");
@@ -118,7 +129,8 @@ export function IntegratedLeafletMap() {
         .split("|")
         .map((latLon) => latLon.split(","))
         .map(([lat, lon]) => [parseFloat(lat), parseFloat(lon)]),
-      raio: obra.idunico === "46014.26-56" ? 500000000 : 100,
+      // Aqui você pode definir o raio desejado para cada obra; se não houver, usamos AR_THRESHOLD
+      raio: obra.idunico === "46014.26-56" ? 500000000 : AR_THRESHOLD,
       isHabitacional,
       isMarket,
       isSchool,
@@ -157,10 +169,20 @@ export function IntegratedLeafletMap() {
   if (error) return <div>Error: {error.message}</div>;
   if (!constructions) return <div>No constructions found</div>;
 
-  // Aqui você pode implementar uma lógica para exibir o botão AR somente quando o usuário estiver próximo de uma obra.
-  // Neste exemplo, exibiremos o botão se houver coordenadas do usuário disponíveis.
-  const shouldShowARButton =
-    coordenadasUsuario.latitude && coordenadasUsuario.longitude;
+  const showARButton =
+    coordenadasUsuario.latitude &&
+    coordenadasUsuario.longitude &&
+    formatedConstructions?.some((obra) => {
+      const userLatLng = L.latLng(
+        coordenadasUsuario.latitude!,
+        coordenadasUsuario.longitude!
+      );
+      const obraLatLng = L.latLng(
+        obra.coordenadas[0][0],
+        obra.coordenadas[0][1]
+      );
+      return userLatLng.distanceTo(obraLatLng) <= AR_THRESHOLD;
+    });
 
   return (
     <div style={{ position: "relative" }}>
@@ -173,26 +195,37 @@ export function IntegratedLeafletMap() {
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         {formatedConstructions?.map((obra) => (
-          <Marker
-            key={obra.id}
-            position={obra.coordenadas[0] as LatLngExpression}
-            icon={
-              obra.isHabitacional
-                ? habitacionalMapIcon
-                : obra.isMarket
-                ? marketMapIcon
-                : obra.isSchool
-                ? schoolMapIcon
-                : obra.isPavimentacao
-                ? calcamentoMapIcon
-                : emptyIcon
-            }
-          >
-            <Popup>
-              <strong>{obra.nome}</strong>
-              <p>{obra.descricao}</p>
-            </Popup>
-          </Marker>
+          <div key={obra.id}>
+            <Marker
+              position={obra.coordenadas[0] as LatLngExpression}
+              icon={
+                obra.isHabitacional
+                  ? habitacionalMapIcon
+                  : obra.isMarket
+                  ? marketMapIcon
+                  : obra.isSchool
+                  ? schoolMapIcon
+                  : obra.isPavimentacao
+                  ? calcamentoMapIcon
+                  : emptyIcon
+              }
+            >
+              <Popup>
+                <strong>{obra.nome}</strong>
+                <p>{obra.descricao}</p>
+              </Popup>
+            </Marker>
+            {/* Círculo visível para indicar o perímetro de proximidade */}
+            <Circle
+              center={obra.coordenadas[0] as LatLngExpression}
+              radius={AR_THRESHOLD}
+              pathOptions={{
+                color: "#28a745",
+                fillColor: "#28a745",
+                fillOpacity: 0.2,
+              }}
+            />
+          </div>
         ))}
 
         {coordenadasUsuario.latitude && coordenadasUsuario.longitude && (
@@ -208,8 +241,8 @@ export function IntegratedLeafletMap() {
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
 
-      {/* Botão para ativar o modo AR */}
-      {shouldShowARButton && !isARActive && (
+      {/* Botão para ativar o modo AR, exibido apenas se o usuário estiver próximo de uma obra */}
+      {showARButton && !isARActive && (
         <button
           onClick={() => setIsARActive(true)}
           style={{
