@@ -1,27 +1,22 @@
-"use client";
-
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-interface ARBallProps {
-  onExit: () => void;
-}
-
-export function ARBall({ onExit }: ARBallProps) {
+export function ARBall({ onExit }: { onExit: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
 
-    // Cria o renderer com suporte a WebXR
+    // Renderer com suporte a WebXR
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.xr.enabled = true;
     container.appendChild(renderer.domElement);
 
-    // Cria a cena e a câmera
+    // Cena e câmera
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       70,
@@ -31,19 +26,35 @@ export function ARBall({ onExit }: ARBallProps) {
     );
     scene.add(camera);
 
-    // Adiciona uma luz ambiente
+    // Luz ambiente
     const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
     light.position.set(0.5, 1, 0.25);
     scene.add(light);
 
-    // Cria a esfera 3D (bola) e define sua posição (ancorada, por exemplo, 1m à frente da câmera)
-    const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.set(0, 0, -1);
-    scene.add(sphere);
+    // Carrega o modelo GLTF
+    const loader = new GLTFLoader();
+    loader.load(
+      "/model.gltf",
+      (gltf) => {
+        const model = gltf.scene;
 
-    // Cria o botão AR do Three.js e adiciona ao container
+        // Calcula a bounding box do modelo
+        const box = new THREE.Box3().setFromObject(model);
+        // Ajusta a posição do modelo para que a base (mínimo Y) fique em 0
+        model.position.y -= box.min.y;
+
+        // Opcional: ajuste de escala se necessário
+        // model.scale.set(0.5, 0.5, 0.5);
+
+        scene.add(model);
+      },
+      undefined,
+      (error) => {
+        console.error("Erro ao carregar o modelo:", error);
+      }
+    );
+
+    // Cria o botão AR do Three.js
     const arButton = ARButton.createButton(renderer, {
       requiredFeatures: ["hit-test"],
     });
@@ -54,7 +65,6 @@ export function ARBall({ onExit }: ARBallProps) {
       renderer.render(scene, camera);
     });
 
-    // Cleanup ao desmontar
     return () => {
       renderer.setAnimationLoop(null);
       while (container.firstChild) {
