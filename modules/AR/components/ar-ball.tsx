@@ -51,7 +51,7 @@ export function ARBall({ onExit }: { onExit: () => void }) {
       debugSphereGeometry,
       debugSphereMaterial
     );
-    debugSphere.position.set(0, 0, -15);
+    debugSphere.position.set(0, 0, 0);
     scene.add(debugSphere);
 
     // Carrega o modelo GLTF
