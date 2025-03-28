@@ -57,7 +57,7 @@ export function ARBall({ onExit }: { onExit: () => void }) {
     // Carrega o modelo GLTF
     const loader = new GLTFLoader();
     loader.load(
-      "/model.gltf",
+      "https://rv-gov-seven.vercel.app/model.gltf",
       (gltf) => {
         console.log("Modelo carregado com sucesso!");
         const model = gltf.scene;
@@ -70,7 +70,7 @@ export function ARBall({ onExit }: { onExit: () => void }) {
         model.position.y -= box.min.y;
 
         // Aumenta o tamanho do modelo (ajuste o fator conforme necessário)
-        model.scale.set(2, 2, 2);
+        model.scale.set(50, 50, 50);
 
         scene.add(model);
 
