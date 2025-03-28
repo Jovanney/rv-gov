@@ -17,6 +17,8 @@ import habitacionalIcon from "@/public/habitacional.webp";
 import marketIcon from "@/public/market.webp";
 import schoolIcon from "@/public/scholl.png";
 import calcamentoIcon from "@/public/calcamento.webp";
+import libraryIcon from "@/public/library.png";
+
 import L from "leaflet";
 import { ARBall } from "./ar-ball";
 
@@ -43,6 +45,13 @@ const schoolMapIcon = new L.Icon({
 
 const calcamentoMapIcon = new L.Icon({
   iconUrl: calcamentoIcon.src,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const bibliotecaMapIcon = new L.Icon({
+  iconUrl: libraryIcon.src,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
@@ -120,6 +129,7 @@ export function IntegratedLeafletMap() {
     const isMarket = descricao.toUpperCase().includes("MERCADO");
     const isSchool = descricao.toUpperCase().includes("ESCOLA");
     const isPavimentacao = descricao.toUpperCase().includes("PAVIMENTAÇÃO");
+    const isLibrary = descricao.toUpperCase().includes("BIBLIOTECA");
 
     return {
       id: obra.idunico,
@@ -135,6 +145,7 @@ export function IntegratedLeafletMap() {
       isMarket,
       isSchool,
       isPavimentacao,
+      isLibrary,
     };
   });
 
@@ -202,12 +213,14 @@ export function IntegratedLeafletMap() {
                 obra.isHabitacional
                   ? habitacionalMapIcon
                   : obra.isMarket
-                  ? marketMapIcon
-                  : obra.isSchool
-                  ? schoolMapIcon
-                  : obra.isPavimentacao
-                  ? calcamentoMapIcon
-                  : emptyIcon
+                    ? marketMapIcon
+                    : obra.isSchool
+                      ? schoolMapIcon
+                      : obra.isPavimentacao
+                        ? calcamentoMapIcon
+                        : obra.isLibrary
+                          ? bibliotecaMapIcon
+                          : emptyIcon
               }
             >
               <Popup>
