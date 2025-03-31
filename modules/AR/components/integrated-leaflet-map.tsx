@@ -287,7 +287,7 @@ export function IntegratedLeafletMap() {
           a obra
         </button>
       )}
-
+      <ARBall onExit={() => setIsARActive(false)} />
       {/* Renderiza o componente ARBall quando isARActive for true */}
       {isARActive && <ARBall onExit={() => setIsARActive(false)} />}
 
