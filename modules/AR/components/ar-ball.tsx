@@ -62,7 +62,7 @@ export function ARBall({ onExit }: { onExit: () => void }) {
     loader.setDRACOLoader(dracoLoader);
 
     loader.load(
-      "https://rv-gov-seven.vercel.app/model_library.gltf",
+      "https://rv-gov-seven.vercel.app/3d_house.gltf",
       (gltf) => {
         console.log("Model successfully loaded:", gltf);
         scene.add(gltf.scene);
