@@ -21,7 +21,8 @@ import libraryIcon from "@/public/library.png";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 import L from "leaflet";
-import { ARBall } from "./ar-ball";
+import { ThreedObject } from "./threed-object";
+import { ProjectInfoBoard } from "./project-info-board";
 
 const habitacionalMapIcon = new L.Icon({
   iconUrl: habitacionalIcon.src,
@@ -147,6 +148,7 @@ export function IntegratedLeafletMap() {
       isSchool,
       isPavimentacao,
       isLibrary,
+      modelUrl: "https://rv-gov-seven.vercel.app/park.glb",
     };
   });
 
@@ -266,6 +268,7 @@ export function IntegratedLeafletMap() {
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
 
+      <ProjectInfoBoard projeto={constructionInRange} />
       {/* Botão para ativar o modo AR com mensagem personalizada */}
       {showARButton && !isARActive && constructionInRange && (
         <button
@@ -287,10 +290,14 @@ export function IntegratedLeafletMap() {
           a obra
         </button>
       )}
-      <ARBall onExit={() => setIsARActive(false)} />
+      {/* <ARBall onExit={() => setIsARActive(false)} /> */}
       {/* Renderiza o componente ARBall quando isARActive for true */}
-      {isARActive && <ARBall onExit={() => setIsARActive(false)} />}
-
+      {isARActive && (
+        <ThreedObject
+          modelUrl={constructionInRange?.modelUrl || ""}
+          onExit={() => setIsARActive(false)}
+        />
+      )}
       <style jsx global>{`
         .pulsing-dot {
           width: 15px;
