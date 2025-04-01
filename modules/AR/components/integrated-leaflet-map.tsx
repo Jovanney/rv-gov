@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -208,6 +210,8 @@ export function IntegratedLeafletMap() {
       constructionInRange
   );
 
+  console.log(constructionInRange);
+
   return (
     <div style={{ position: "relative" }}>
       <h2 className="h-full flex justify-center p-2 font-semibold">
@@ -269,8 +273,6 @@ export function IntegratedLeafletMap() {
 
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <ProjectInfoBoard projeto={constructionInRange as any} />
       {/* Botão para ativar o modo AR com mensagem personalizada */}
       {showARButton && !isARActive && constructionInRange && (
         <button
@@ -295,10 +297,12 @@ export function IntegratedLeafletMap() {
       {/* <ARBall onExit={() => setIsARActive(false)} /> */}
       {/* Renderiza o componente ARBall quando isARActive for true */}
       {isARActive && (
-        <ThreedObject
-          modelUrl={constructionInRange?.modelUrl || ""}
-          onExit={() => setIsARActive(false)}
-        />
+        // <ThreedObject
+        //   modelUrl={constructionInRange?.modelUrl || ""}
+        //   onExit={() => setIsARActive(false)}
+        // />
+
+        <ProjectInfoBoard projeto={constructionInRange as any} />
       )}
       <style jsx global>{`
         .pulsing-dot {
