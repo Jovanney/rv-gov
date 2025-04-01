@@ -269,8 +269,8 @@ export function IntegratedLeafletMap() {
 
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
-
-      <ProjectInfoBoard projeto={constructionInRange} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <ProjectInfoBoard projeto={constructionInRange as any} />
       {/* Botão para ativar o modo AR com mensagem personalizada */}
       {showARButton && !isARActive && constructionInRange && (
         <button
