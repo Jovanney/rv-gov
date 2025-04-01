@@ -119,7 +119,8 @@ export function IntegratedLeafletMap() {
   const [coordenadasUsuario, setCoordenadasUsuario] = useState<{
     latitude: number | null;
     longitude: number | null;
-  }>({ latitude: null, longitude: null });
+    altitude: number | null;
+  }>({ latitude: null, longitude: null, altitude: null });
 
   // Estado para controlar a exibição do modo AR
   const [isARActive, setIsARActive] = useState(false);
@@ -156,12 +157,12 @@ export function IntegratedLeafletMap() {
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
-          const { latitude, longitude, accuracy } = pos.coords;
+          const { altitude, latitude, longitude, accuracy } = pos.coords;
           console.log(
             `📍 Latitude: ${latitude}, Longitude: ${longitude}, Precisão: ${accuracy}m`
           );
 
-          setCoordenadasUsuario({ latitude, longitude });
+          setCoordenadasUsuario({ latitude, longitude, altitude });
 
           if (accuracy > 50) {
             console.warn(
@@ -212,6 +213,7 @@ export function IntegratedLeafletMap() {
       <h2 className="h-full flex justify-center p-2 font-semibold">
         Visualizador de obras
       </h2>
+      <p>[{coordenadasUsuario.altitude}]</p>
       <MapContainer
         center={[-8.0476, -34.877]}
         zoom={15}
