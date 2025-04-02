@@ -164,7 +164,17 @@ export function IntegratedLeafletMap() {
       isSchool,
       isPavimentacao,
       isLibrary,
-      modelUrl: "https://rv-gov-seven.vercel.app/park.glb",
+      modelUrl: 
+        isHabitacional
+          ? "https://rv-gov-seven.vercel.app/park.glb"
+          : isLibrary
+            ? "https://rv-gov-seven.vercel.app/model_library.gltf"
+            : isSchool
+              ? "https://rv-gov-seven.vercel.app/school.glb"
+                : isMarket
+                  ? "https://rv-gov-seven.vercel.app/market.glb"
+                    : "https://rv-gov-seven.vercel.app/model.glb"
+
     };
   });
 
@@ -223,6 +233,7 @@ export function IntegratedLeafletMap() {
   //   constructionInRange
   // );
   const showARButton = true;
+  
   const mockedConstruction = {
     id: "12345",
     nome: "Obra Exemplo",
