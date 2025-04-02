@@ -131,6 +131,7 @@ export function IntegratedLeafletMap() {
     const isHabitacional = descricao.toUpperCase().includes("HABITACIONAIS");
     const isMarket = descricao.toUpperCase().includes("MERCADO");
     const isSchool = descricao.toUpperCase().includes("ESCOLA");
+    const isEducation = descricao.toUpperCase().includes("EDUCAÇÃO");
     const isPavimentacao = descricao.toUpperCase().includes("PAVIMENTAÇÃO");
     const isLibrary = descricao.toUpperCase().includes("BIBLIOTECA");
 
@@ -162,15 +163,18 @@ export function IntegratedLeafletMap() {
       isMarket,
       isSchool,
       isPavimentacao,
+      isEducation,
       isLibrary,
       modelUrl: isHabitacional
         ? "https://rv-gov-seven.vercel.app/predio_azul.glb"
         : isLibrary
         ? "https://rv-gov-seven.vercel.app/model_library.gltf"
         : isSchool
-        ? "https://rv-gov-seven.vercel.app/school.glb"
+        ? "https://rv-gov-seven.vercel.app/predio_azul.glb"
         : isMarket
         ? "https://rv-gov-seven.vercel.app/market.glb"
+        : isEducation
+        ? "https://rv-gov-seven.vercel.app/predio_azul.glb"
         : "https://rv-gov-seven.vercel.app/model.glb",
     };
   });
@@ -291,6 +295,8 @@ export function IntegratedLeafletMap() {
                   ? calcamentoMapIcon
                   : obra.isLibrary
                   ? bibliotecaMapIcon
+                  : obra.isEducation
+                  ? schoolMapIcon
                   : emptyIcon
               }
             >
@@ -342,8 +348,8 @@ export function IntegratedLeafletMap() {
               zIndex: 1000,
             }}
           >
-            Você está no raio da obra {constructionInRange.nome}. Clique para ver
-            a obra
+            Você está no raio da obra {constructionInRange.nome}. Clique para
+            ver a obra
           </button>
         </div>
       )}
