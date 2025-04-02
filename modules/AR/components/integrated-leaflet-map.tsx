@@ -23,8 +23,9 @@ import libraryIcon from "@/public/library.png";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 import L from "leaflet";
-import { ThreedObject } from "./threed-object";
 import { ProjectInfoBoard } from "./project-info-board";
+import { ThreedObject } from "./threed-object";
+import { ARScene } from "./ar-scene";
 
 const habitacionalMapIcon = new L.Icon({
   iconUrl: habitacionalIcon.src,
@@ -68,7 +69,6 @@ const emptyIcon = divIcon({
   iconAnchor: [10, 10],
 });
 
-// Raio reduzido para exibir o botão AR (em metros)
 const AR_THRESHOLD = 150;
 
 function FocusOnUser({
@@ -124,10 +124,8 @@ export function IntegratedLeafletMap() {
     altitude: number | null;
   }>({ latitude: null, longitude: null, altitude: null });
 
-  // Estado para controlar a exibição do modo AR
   const [isARActive, setIsARActive] = useState(false);
 
-  // Formata as construções
   const formatedConstructions = constructions?.data?.obras.map((obra) => {
     const descricao = obra.descricao || "";
     const isHabitacional = descricao.toUpperCase().includes("HABITACIONAIS");
@@ -144,8 +142,22 @@ export function IntegratedLeafletMap() {
         .split("|")
         .map((latLon) => latLon.split(","))
         .map(([lat, lon]) => [parseFloat(lat), parseFloat(lon)]),
-      // Define o raio para cada obra; se não houver, usamos AR_THRESHOLD
       raio: obra.idunico === "46014.26-56" ? 500000000 : AR_THRESHOLD,
+      uf: obra.uf,
+      funcaosocial: obra.funcaosocial,
+      metaglobal: obra.metaglobal,
+      datainicialprevista: obra.datainicialprevista,
+      datainicialefetiva: obra.datainicialefetiva,
+      datafinalprevista: obra.datafinalprevista,
+      datafinalefetiva: obra.datafinalefetiva,
+      especie: obra.especie,
+      natureza: obra.natureza,
+      situacao: obra.situacao,
+      datasituacao: obra.datasituacao,
+      cep: obra.cep,
+      enderecoareaexecutora: obra.enderecoareaexecutora,
+      recursosorigem: obra.recursosorigem,
+      recursosvalorinvestimento: obra.recursosvalorinvestimento,
       isHabitacional,
       isMarket,
       isSchool,
@@ -204,14 +216,43 @@ export function IntegratedLeafletMap() {
     return userLatLng.distanceTo(obraLatLng) <= AR_THRESHOLD;
   });
 
-  const showARButton = Boolean(
-    coordenadasUsuario.latitude &&
-      coordenadasUsuario.longitude &&
-      constructionInRange
-  );
-
-  console.log(constructionInRange);
-
+  // const showARButton = !!(
+  //   coordenadasUsuario.latitude &&
+  //   coordenadasUsuario.longitude &&
+  //   constructionInRange
+  // );
+  const showARButton = true;
+  const mockedConstruction = {
+    id: "12345",
+    nome: "Obra Exemplo",
+    descricao: "Construção de escola",
+    coordenadas: [
+      [-8.045255747866467, -34.95100032048557],
+      [-8.046282215547262, -34.95091652534334],
+    ],
+    raio: 150,
+    uf: "PE",
+    funcaosocial: "Educação",
+    metaglobal: "Construção de 10 salas",
+    datainicialprevista: "2025-01-01",
+    datainicialefetiva: "2025-01-10",
+    datafinalprevista: "2025-12-31",
+    datafinalefetiva: "2026-01-15",
+    especie: "Pública",
+    natureza: "Infraestrutura",
+    situacao: "Em andamento",
+    datasituacao: "2025-02-15",
+    cep: "01000-000",
+    enderecoareaexecutora: "Av. Principal, 500",
+    recursosorigem: "Governo Federal",
+    recursosvalorinvestimento: 1500000.5,
+    isHabitacional: false,
+    isMarket: false,
+    isSchool: true,
+    isPavimentacao: false,
+    isLibrary: false,
+    modelUrl: "https://rv-gov-seven.vercel.app/park.glb",
+  };
   return (
     <div style={{ position: "relative" }}>
       <h2 className="h-full flex justify-center p-2 font-semibold">
@@ -274,7 +315,7 @@ export function IntegratedLeafletMap() {
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
       {/* Botão para ativar o modo AR com mensagem personalizada */}
-      {showARButton && !isARActive && constructionInRange && (
+      {showARButton && !isARActive && mockedConstruction && (
         <button
           onClick={() => setIsARActive(true)}
           style={{
@@ -290,19 +331,25 @@ export function IntegratedLeafletMap() {
             zIndex: 1000,
           }}
         >
-          Você está no raio da obra {constructionInRange.nome}. Clique para ver
-          a obra
+          Você está no raio da obra {mockedConstruction.nome}. Clique para ver a
+          obra
         </button>
       )}
       {/* <ARBall onExit={() => setIsARActive(false)} /> */}
       {/* Renderiza o componente ARBall quando isARActive for true */}
       {isARActive && (
-        // <ThreedObject
-        //   modelUrl={constructionInRange?.modelUrl || ""}
-        //   onExit={() => setIsARActive(false)}
-        // />
-
-        <ProjectInfoBoard projeto={constructionInRange as any} />
+        <>
+          {/* <ThreedObject
+            modelUrl={mockedConstruction?.modelUrl || ""}
+            onExit={() => setIsARActive(false)}
+          /> */}
+          <ARScene
+            modelUrl={mockedConstruction?.modelUrl || ""}
+            projeto={mockedConstruction}
+            onExit={() => setIsARActive(false)}
+          />
+          {/* <ProjectInfoBoard projeto={mockedConstruction} /> */}
+        </>
       )}
       <style jsx global>{`
         .pulsing-dot {
