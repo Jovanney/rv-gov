@@ -6,9 +6,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import { Object3DEventMap } from "three";
-
-// Fix 1: Add proper type declarations for WebXR elements
-
 interface ARSceneProps {
   modelUrl: string;
   projeto: {

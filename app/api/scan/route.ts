@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase client
+// Init Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -9,23 +9,21 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    console.log("🚀 Fetching all obras from Supabase...");
-
     const { data, error } = await supabase.from("obras").select("*");
 
     if (error) {
-      console.error("❌ Supabase Fetch Error:", error);
+      console.error("❌ Erro de Fetch Supabase:", error);
       return NextResponse.json(
-        { error: "Failed to fetch data", details: error.message },
+        { error: "Erro de fetch", details: error.message },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ obras: data });
   } catch (error) {
-    console.error("❌ Unexpected Error:", error);
+    console.error("❌ Erro não especificado:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Erro interno do server" },
       { status: 500 }
     );
   }
