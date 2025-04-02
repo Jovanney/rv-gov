@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 
 interface ARSceneProps {
   modelUrl: string;
@@ -43,6 +44,11 @@ export function ARScene2({ modelUrl, projeto, onExit }: ARSceneProps) {
     const container = containerRef.current;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const arButton = ARButton.createButton(renderer, {
+      requiredFeatures: ["local-floor"],
+    });
+    container.appendChild(arButton);
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.xr.enabled = true;
     container.appendChild(renderer.domElement);
