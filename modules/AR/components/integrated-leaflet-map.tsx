@@ -168,7 +168,7 @@ export function IntegratedLeafletMap() {
         : isLibrary
         ? "https://rv-gov-seven.vercel.app/model_library.gltf"
         : isSchool
-        ? "https://rv-gov-seven.vercel.app/school.glb"
+        ? "https://rv-gov-seven.vercel.app/predio_azul.glb"
         : isMarket
         ? "https://rv-gov-seven.vercel.app/market.glb"
         : "https://rv-gov-seven.vercel.app/model.glb",
