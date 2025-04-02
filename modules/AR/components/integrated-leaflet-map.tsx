@@ -164,7 +164,7 @@ export function IntegratedLeafletMap() {
       isPavimentacao,
       isLibrary,
       modelUrl: isHabitacional
-        ? "https://rv-gov-seven.vercel.app/park.glb"
+        ? "https://rv-gov-seven.vercel.app/predio_azul.glb"
         : isLibrary
         ? "https://rv-gov-seven.vercel.app/model_library.gltf"
         : isSchool
