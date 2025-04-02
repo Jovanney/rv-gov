@@ -282,7 +282,7 @@ export function IntegratedLeafletMap() {
               position={obra.coordenadas[0] as LatLngExpression}
               icon={
                 obra.isHabitacional
-                  ? habitacionalMapIcon
+                  ? schoolMapIcon
                   : obra.isMarket
                   ? marketMapIcon
                   : obra.isSchool
@@ -342,8 +342,8 @@ export function IntegratedLeafletMap() {
               zIndex: 1000,
             }}
           >
-            Você está no raio da obra {constructionInRange.nome}. Clique para ver
-            a obra
+            Você está no raio da obra {constructionInRange.nome}. Clique para
+            ver a obra
           </button>
         </div>
       )}
