@@ -39,7 +39,14 @@ function formatDate(dateStr: string): string {
 
 export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const modelRef = useRef<THREE.Group | null>(null);
   const [scale, setScale] = useState(0.5);
+
+  useEffect(() => {
+    if (modelRef.current) {
+      modelRef.current.scale.set(scale, scale, scale);
+    }
+  }, [scale]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -62,6 +69,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
     scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1));
 
     const boardGroup = new THREE.Group();
+    boardGroup.visible = true;
     scene.add(boardGroup);
 
     const canvas = document.createElement("canvas");
@@ -148,6 +156,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
         gltf.scene.position.set(0, 0, 0);
         gltf.scene.scale.set(scale, scale, scale);
         boardGroup.add(gltf.scene);
+        modelRef.current = gltf.scene;
       },
       undefined,
       (error) => console.error("Erro ao carregar modelo:", error)
@@ -176,8 +185,6 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
           space: viewerSpace,
         });
         localSpace = await session.requestReferenceSpace("local");
-      } else {
-        console.warn("O navegador não suporta recursos WebXR necessários.");
       }
     });
 
@@ -226,7 +233,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
       renderer.setAnimationLoop(null);
       while (container.firstChild) container.removeChild(container.firstChild);
     };
-  }, [modelUrl, projeto, scale]);
+  }, [modelUrl, projeto]);
 
   return (
     <div
@@ -259,7 +266,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
         onClick={() => setScale((prev) => Math.min(prev + 0.1, 3))}
         style={{
           position: "absolute",
-          bottom: 20,
+          top: 60,
           left: 20,
           padding: 10,
           background: "white",
@@ -274,7 +281,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
         onClick={() => setScale((prev) => Math.max(prev - 0.1, 0.1))}
         style={{
           position: "absolute",
-          bottom: 20,
+          top: 60,
           left: 130,
           padding: 10,
           background: "white",
