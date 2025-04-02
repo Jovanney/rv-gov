@@ -282,7 +282,7 @@ export function IntegratedLeafletMap() {
               position={obra.coordenadas[0] as LatLngExpression}
               icon={
                 obra.isHabitacional
-                  ? schoolMapIcon
+                  ? habitacionalMapIcon
                   : obra.isMarket
                   ? marketMapIcon
                   : obra.isSchool
