@@ -57,12 +57,12 @@ export function ProjectInfoBoard({ projeto }: { projeto: Projeto }) {
 
     // 🧾 Canvas com texto
     const canvas = document.createElement("canvas");
-    canvas.width = 2048;
-    canvas.height = 1024;
+    canvas.width = 2048*0.7;
+    canvas.height = 1024*0.7;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#0033aa";
+    ctx.fillStyle = "hsla(222 100% 33.3% / 0.5)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 40px Arial";
