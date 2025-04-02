@@ -26,7 +26,6 @@ import L from "leaflet";
 import { ProjectInfoBoard } from "./project-info-board";
 import { ThreedObject } from "./threed-object";
 import { ARScene } from "./ar-scene";
-import { ARScene2 } from "./v2";
 
 const habitacionalMapIcon = new L.Icon({
   iconUrl: habitacionalIcon.src,
@@ -336,21 +335,13 @@ export function IntegratedLeafletMap() {
           obra
         </button>
       )}
-      {/* <ARBall onExit={() => setIsARActive(false)} /> */}
       {/* Renderiza o componente ARBall quando isARActive for true */}
       {isARActive && (
-        <>
-          {/* <ThreedObject
-            modelUrl={mockedConstruction?.modelUrl || ""}
-            onExit={() => setIsARActive(false)}
-          /> */}
-          <ARScene2
-            modelUrl={mockedConstruction?.modelUrl || ""}
-            projeto={mockedConstruction}
-            onExit={() => setIsARActive(false)}
-          />
-          {/* <ProjectInfoBoard projeto={mockedConstruction} /> */}
-        </>
+        <ARScene
+          modelUrl={mockedConstruction?.modelUrl || ""}
+          projeto={mockedConstruction}
+          onExit={() => setIsARActive(false)}
+        />
       )}
       <style jsx global>{`
         .pulsing-dot {
