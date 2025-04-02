@@ -1,11 +1,13 @@
 // ARScene.tsx
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton.js";
 import { Object3DEventMap } from "three";
+
+// Fix 1: Add proper type declarations for WebXR elements
 
 interface ARSceneProps {
   modelUrl: string;
@@ -39,7 +41,6 @@ function formatDate(dateStr: string): string {
 
 export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.5);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -62,8 +63,8 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
     scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1));
 
     const boardGroup = new THREE.Group();
-    scene.add(boardGroup);
 
+    // 📦 Criação da placa informativa
     const canvas = document.createElement("canvas");
     canvas.width = 2048;
     canvas.height = 1024;
@@ -124,6 +125,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
     );
 
     const texture = new THREE.CanvasTexture(canvas);
+
     const boardGeometry = new THREE.BoxGeometry(1.5, 0.75, 0.05);
     const boardMaterials = [
       new THREE.MeshBasicMaterial({ color: "#002266" }),
@@ -137,6 +139,9 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
     board.position.set(1.2, 0.6, 0);
     boardGroup.add(board);
 
+    scene.add(boardGroup);
+
+    // 🏗️ Modelo GLB da obra
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
@@ -146,13 +151,16 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
       modelUrl,
       (gltf) => {
         gltf.scene.position.set(0, 0, 0);
-        gltf.scene.scale.set(scale, scale, scale);
+        gltf.scene.scale.set(0.5, 0.5, 0.5);
         boardGroup.add(gltf.scene);
       },
       undefined,
-      (error) => console.error("Erro ao carregar modelo:", error)
+      (error) => {
+        console.error("Erro ao carregar modelo:", error);
+      }
     );
 
+    // WebXR com hit-test
     const arButton = ARButton.createButton(renderer, {
       requiredFeatures: ["hit-test"],
     });
@@ -161,6 +169,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
     let controller: THREE.Group | null | undefined;
     let reticle: THREE.Mesh | null | undefined;
     let hitTestSource: XRHitTestSource | null | undefined;
+
     let localSpace: XRReferenceSpace | null = null;
 
     renderer.xr.addEventListener("sessionstart", async () => {
@@ -226,7 +235,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
       renderer.setAnimationLoop(null);
       while (container.firstChild) container.removeChild(container.firstChild);
     };
-  }, [modelUrl, projeto, scale]);
+  }, []);
 
   return (
     <div
@@ -254,36 +263,6 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
         }}
       >
         Sair AR
-      </button>
-      <button
-        onClick={() => setScale((prev) => Math.min(prev + 0.1, 3))}
-        style={{
-          position: "absolute",
-          bottom: 20,
-          left: 20,
-          padding: 10,
-          background: "white",
-          border: "1px solid #ccc",
-          borderRadius: 5,
-          zIndex: 3000,
-        }}
-      >
-        ➕ Aumentar
-      </button>
-      <button
-        onClick={() => setScale((prev) => Math.max(prev - 0.1, 0.1))}
-        style={{
-          position: "absolute",
-          bottom: 20,
-          left: 130,
-          padding: 10,
-          background: "white",
-          border: "1px solid #ccc",
-          borderRadius: 5,
-          zIndex: 3000,
-        }}
-      >
-        ➖ Diminuir
       </button>
     </div>
   );
