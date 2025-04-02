@@ -326,24 +326,26 @@ export function IntegratedLeafletMap() {
       </MapContainer>
       {/* Botão para ativar o modo AR com mensagem personalizada */}
       {showARButton && !isARActive && constructionInRange && (
-        <button
-          onClick={() => setIsARActive(true)}
-          className="px-3 py-1.5 text-sm"
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            right: "20px",
-            backgroundColor: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            zIndex: 1000,
-          }}
-        >
-          Você está no raio da obra {constructionInRange.nome}. Clique para ver
-          a obra
-        </button>
+        <div className="w-full flex justify-center items-center">
+          <button
+            onClick={() => setIsARActive(true)}
+            className="px-3 py-1.5 text-sm"
+            style={{
+              position: "absolute",
+              // bottom: "20px",
+              // right: "20px",
+              backgroundColor: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              zIndex: 1000,
+            }}
+          >
+            Você está no raio da obra {constructionInRange.nome}. Clique para ver
+            a obra
+          </button>
+        </div>
       )}
       {/* Renderiza o componente ARBall quando isARActive for true */}
       {isARActive && constructionInRange && (
