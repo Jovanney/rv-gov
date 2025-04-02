@@ -152,7 +152,7 @@ export function ARScene2({ modelUrl, projeto, onExit }: ARSceneProps) {
       modelUrl,
       (gltf) => {
         gltf.scene.position.set(0, 0, 0);
-        gltf.scene.scale.set(10, 10, 10);
+        gltf.scene.scale.set(0.5, 0.5, 0.5);
         boardGroup.add(gltf.scene);
       },
       undefined,
@@ -160,7 +160,8 @@ export function ARScene2({ modelUrl, projeto, onExit }: ARSceneProps) {
     );
 
     // 📍 Coordenadas geográficas da obra (latitude/longitude)
-    const targetLat = -8.04653;
+    const targetLat = 8.04653;
+
     const targetLon = -34.950824;
 
     if (navigator.geolocation) {
