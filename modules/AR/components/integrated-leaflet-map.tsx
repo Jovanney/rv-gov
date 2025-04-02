@@ -163,17 +163,15 @@ export function IntegratedLeafletMap() {
       isSchool,
       isPavimentacao,
       isLibrary,
-      modelUrl: 
-        isHabitacional
-          ? "https://rv-gov-seven.vercel.app/park.glb"
-          : isLibrary
-            ? "https://rv-gov-seven.vercel.app/model_library.gltf"
-            : isSchool
-              ? "https://rv-gov-seven.vercel.app/school.glb"
-                : isMarket
-                  ? "https://rv-gov-seven.vercel.app/market.glb"
-                    : "https://rv-gov-seven.vercel.app/model.glb"
-
+      modelUrl: isHabitacional
+        ? "https://rv-gov-seven.vercel.app/park.glb"
+        : isLibrary
+        ? "https://rv-gov-seven.vercel.app/model_library.gltf"
+        : isSchool
+        ? "https://rv-gov-seven.vercel.app/school.glb"
+        : isMarket
+        ? "https://rv-gov-seven.vercel.app/market.glb"
+        : "https://rv-gov-seven.vercel.app/model.glb",
     };
   });
 
@@ -232,11 +230,12 @@ export function IntegratedLeafletMap() {
   //   constructionInRange
   // );
   const showARButton = true;
-  
+
   const mockedConstruction = {
     id: "67890",
     nome: "Novo Prédio do CIn-UFPE",
-    descricao: "Construção de um novo prédio para o Centro de Informática da UFPE",
+    descricao:
+      "Construção de um novo prédio para o Centro de Informática da UFPE",
     coordenadas: [
       [-8.045255747866467, -34.95100032048557],
       [-8.046282215547262, -34.95091652534334],
@@ -254,7 +253,8 @@ export function IntegratedLeafletMap() {
     situacao: "Planejado",
     datasituacao: "2025-04-01",
     cep: "50740-560",
-    enderecoareaexecutora: "Av. Jorn. Aníbal Fernandes, s/n, Cidade Universitária, Recife - PE",
+    enderecoareaexecutora:
+      "Av. Jorn. Aníbal Fernandes, s/n, Cidade Universitária, Recife - PE",
     recursosorigem: "Governo Federal e UFPE",
     recursosvalorinvestimento: 2000000.0,
     isHabitacional: true,
@@ -334,7 +334,7 @@ export function IntegratedLeafletMap() {
             position: "absolute",
             bottom: "20px",
             right: "20px",
-            padding: "10px 15px",
+            padding: "5px 10px",
             backgroundColor: "#28a745",
             color: "white",
             border: "none",
