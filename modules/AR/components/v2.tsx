@@ -160,8 +160,9 @@ export function ARScene2({ modelUrl, projeto, onExit }: ARSceneProps) {
     );
 
     // 📍 Coordenadas geográficas da obra (latitude/longitude)
-    const targetLat = -8.046435;
-    const targetLon = -34.950859;
+    const targetLat = 8.04653;
+
+    const targetLon = -34.950824;
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
