@@ -224,12 +224,11 @@ export function IntegratedLeafletMap() {
     return userLatLng.distanceTo(obraLatLng) <= AR_THRESHOLD;
   });
 
-  // const showARButton = !!(
-  //   coordenadasUsuario.latitude &&
-  //   coordenadasUsuario.longitude &&
-  //   constructionInRange
-  // );
-  const showARButton = true;
+  const showARButton = !!(
+    coordenadasUsuario.latitude &&
+    coordenadasUsuario.longitude &&
+    constructionInRange
+  );
 
   const mockedConstruction = {
     id: "67890",
@@ -326,14 +325,14 @@ export function IntegratedLeafletMap() {
         <FocusOnUser coordenadasUsuario={coordenadasUsuario} />
       </MapContainer>
       {/* Botão para ativar o modo AR com mensagem personalizada */}
-      {showARButton && !isARActive && mockedConstruction && (
+      {showARButton && !isARActive && constructionInRange && (
         <button
           onClick={() => setIsARActive(true)}
+          className="px-3 py-1.5 text-sm"
           style={{
             position: "absolute",
             bottom: "20px",
             right: "20px",
-            padding: "5px 10px",
             backgroundColor: "#28a745",
             color: "white",
             border: "none",
@@ -342,15 +341,15 @@ export function IntegratedLeafletMap() {
             zIndex: 1000,
           }}
         >
-          Você está no raio da obra {mockedConstruction.nome}. Clique para ver a
-          obra
+          Você está no raio da obra {constructionInRange.nome}. Clique para ver
+          a obra
         </button>
       )}
       {/* Renderiza o componente ARBall quando isARActive for true */}
-      {isARActive && (
+      {isARActive && constructionInRange && (
         <ARScene
-          modelUrl={mockedConstruction?.modelUrl || ""}
-          projeto={mockedConstruction}
+          modelUrl={constructionInRange?.modelUrl || ""}
+          projeto={constructionInRange}
           onExit={() => setIsARActive(false)}
         />
       )}

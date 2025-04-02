@@ -151,7 +151,7 @@ export function ARScene({ modelUrl, projeto, onExit }: ARSceneProps) {
       modelUrl,
       (gltf) => {
         gltf.scene.position.set(0, 0, 0);
-        gltf.scene.scale.set(0.02, 0.02, 0.02);
+        gltf.scene.scale.set(0.05, 0.05, 0.05);
         boardGroup.add(gltf.scene);
       },
       undefined,
