@@ -268,9 +268,8 @@ export function IntegratedLeafletMap() {
   return (
     <div style={{ position: "relative" }}>
       <h2 className="h-full flex justify-center p-2 font-semibold">
-        Visualizador de obras
+        Visualizador de obras 🏗️
       </h2>
-      <p>[{coordenadasUsuario.altitude}]</p>
       <MapContainer
         center={[-8.0476, -34.877]}
         zoom={15}
